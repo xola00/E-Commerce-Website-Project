@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ETOAC | Specials</title>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* ========= RESET ========= */
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    a{ color:inherit; text-decoration:none; }
+    img{ max-width:100%; display:block; }
+    button,input,select{ font:inherit; }
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+    /* ========= THEME ========= */
+    :root{
+      --bg:#ffffff;
+      --bg2:#f3f4f6;
+      --text:#111827;
+      --muted:#6b7280;
+      --card:#ffffff;
+      --border:#e5e7eb;
+      --shadow:0 8px 24px rgba(17,24,39,.08);
+
+      --nav:#408ef3;
+      --nav2:#232f3e;
+      --accent:#69f9fe;
+      --link:#0b74de;
+      --danger:#dc2626;
+      --success:#10b981;
+    }
+    body[data-theme="dark"]{
+      --bg:#0b1220;
+      --bg2:#0f1a2d;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --card:#0f1a2d;
+      --border:#1f2a44;
+      --shadow:0 10px 26px rgba(0,0,0,.35);
+    }
+    body{ background:var(--bg2); color:var(--text); }
+
+    /* ========= HEADER ========= */
+    .amz-header{ position:sticky; top:0; z-index:50; }
+    .amz-header__top{
+      display:grid;
+      grid-template-columns: 1fr minmax(260px,740px) auto;
+      gap:12px;
+      align-items:center;
+      padding:10px 12px;
+      background:var(--nav);
+      color:#fff;
+    }
+    .amz-brand{ display:flex; gap:10px; align-items:center; min-width:190px; }
+    .amz-brand__logo{
+      width:40px; height:40px; object-fit:contain;
+      border-radius:8px; background:rgba(255,255,255,.06); padding:4px;
+    }
+    .amz-brand__name{ font-weight:900; line-height:1.1; font-size:14px; }
+    .amz-brand__tagline{ font-size:12px; opacity:.85; }
+
+    .amz-search{
+      display:flex; background:#fff; border-radius:10px; overflow:hidden;
+      border:2px solid transparent;
+    }
+    .amz-search:focus-within{ border-color:var(--accent); }
+    .amz-search__select{ border:0; padding:10px 10px; background:#f3f4f6; color:#111827; max-width:140px; }
+    .amz-search__input{ border:0; padding:10px 12px; width:100%; outline:none; }
+    .amz-search__btn{
+      border:0; background:var(--accent); padding:0 14px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .amz-search__btn svg{ width:20px; height:20px; fill:#111827; }
+
+    .amz-actions{ display:flex; align-items:center; gap:10px; }
+    .amz-action__btn{
+      width:38px; height:38px; border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:#fff; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .amz-action__btn svg{ width:18px; height:18px; fill:#fff; }
+
+    .amz-action__link{
+      display:flex; flex-direction:column; gap:2px;
+      padding:6px 10px; border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .amz-action__small{ font-size:11px; opacity:.9; }
+    .amz-action__big{ font-size:13px; font-weight:900; }
+
+    .amz-cart{
+      position:relative;
+      display:flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff; border-radius:10px; cursor:pointer;
+    }
+    .amz-cart__badge{
+      position:absolute; top:-6px; left:18px;
+      background:var(--danger); color:#fff;
+      border-radius:999px; padding:2px 6px;
+      font-size:12px; font-weight:900;
+    }
+    .amz-cart__text{ font-weight:900; font-size:13px; }
+
+    .amz-navToggle{
+      display:none;
+      width:42px; height:42px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:10px; cursor:pointer;
+      flex-direction:column; justify-content:center; gap:5px;
+      padding:0 10px;
+    }
+    .amz-navToggle span{ height:2px; background:#fff; border-radius:9px; display:block; }
+
+    .amz-header__strip{
+      display:flex; justify-content:space-between; gap:10px;
+      padding:8px 12px;
+      background:var(--nav2);
+      color:#fff;
+      overflow:auto;
+    }
+    .amz-strip__left{ display:flex; gap:10px; align-items:center; flex-wrap:nowrap; }
+    .amz-strip__item{
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      white-space:nowrap; font-size:13px;
+    }
+
+    /* ========= MAIN ========= */
+    .amz-main{ padding:14px 12px 28px; max-width:1280px; margin:0 auto; }
+
+    .pageHead{
+      display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+      margin:6px 0 12px;
+    }
+    .pageHead h1{ margin:0; font-size:18px; }
+    .pageHead .hint{ color:var(--muted); font-size:13px; }
+
+    /* ========= GRID ========= */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:12px;
+    }
+
+    /* ========= CARDS ========= */
+    .card{
+      border:1px solid var(--border);
+      border-radius:8px;
+      overflow:hidden;
+      background:var(--bg);
+      display:flex;
+      flex-direction:column;
+      min-height:160px;
+      transition:transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(0,0,0,.1);
+    }
+    .card__img{
+      height:140px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(to bottom, #fef3c7, #fde68a);
+      border-bottom:1px solid var(--border);
+    }
+    .card__img img{
+      max-height:120px;
+      max-width:120px;
+      object-fit:contain;
+    }
+    .card__body{ padding:10px; display:flex; flex-direction:column; gap:6px; }
+    .deal-badges{ display:flex; align-items:center; gap:8px; }
+    .deal-badge{
+      display:inline-flex; align-items:center;
+      padding:3px 8px; border-radius:4px;
+      background:var(--danger); color:#fff;
+      font-weight:900; font-size:11px; line-height:1;
+    }
+    .deal-timer{ font-size:11px; font-weight:800; color:var(--danger); }
+    .deal-price{ display:flex; align-items:baseline; gap:6px; margin:2px 0; }
+    .deal-now{ font-size:16px; font-weight:900; color:var(--danger); }
+    .deal-was{ font-size:12px; color:var(--muted); text-decoration:line-through; }
+    .deal-title{
+      font-size:12px; font-weight:900; line-height:1.2;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    .card__actions{ display:flex; gap:8px; margin-top:6px; }
+    .btn{
+      border:1px solid var(--border);
+      background:var(--bg2);
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:5px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:12px;
+      flex:1;
+      transition:all 0.2s ease;
+    }
+    .btn.primary{
+      background:var(--accent);
+      border-color:rgba(0,0,0,.15);
+      color:#111827;
+    }
+    .btn:hover{ background:var(--border); }
+    .btn.primary:hover{ background:var(--success); border-color:var(--success); }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+    .notice{
+      border:1px dashed var(--border);
+      border-radius:14px;
+      background:rgba(255,255,255,.6);
+      padding:12px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    body[data-theme="dark"] .notice{ background:rgba(15,26,45,.6); }
+
+    /* ========= RESPONSIVE ========= */
+    @media (max-width:1100px){
+      .grid{ grid-template-columns: repeat(3, 1fr); }
+      .amz-header__top{ grid-template-columns: 1fr minmax(220px,1fr) auto; }
+    }
+    @media (max-width:860px){
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width:760px){
+      .amz-header__top{
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "brand actions"
+          "search search";
+      }
+      .amz-brand{ grid-area:brand; min-width:0; }
+      .amz-actions{ grid-area:actions; }
+      .amz-search{ grid-area:search; }
+      .amz-action__link{ display:none; }
+      .amz-navToggle{ display:flex; }
+      .amz-header__strip{ display:none; flex-direction:column; align-items:flex-start; }
+      .amz-header__strip.open{ display:flex; }
+
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width:420px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body data-page="specials" class="amz">
+  <!-- HEADER -->
+  <header class="amz-header">
+    <div class="amz-header__top">
+      <a class="amz-brand" href="index.html" aria-label="Go to home">
+        <img class="amz-brand__logo" src="images/logo.png" alt="ETOAC logo" />
+        <div class="amz-brand__text">
+          <div class="amz-brand__name">ETOAC Cleaning & Arts</div>
+          <div class="amz-brand__tagline">Clean Spaces. Crafted Stories.</div>
+        </div>
+      </a>
+
+      <form class="amz-search" id="searchForm" role="search">
+        <select class="amz-search__select" id="searchCategory" aria-label="Search category">
+          <option value="">All</option>
+        </select>
+        <input class="amz-search__input" id="searchInput" type="search" placeholder="Search detergents, art pieces, combos..." autocomplete="off" />
+        <button class="amz-search__btn" type="submit" aria-label="Search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"></path></svg>
+        </button>
+      </form>
+
+      <div class="amz-actions">
+        <button class="amz-action__btn" type="button" id="themeToggle" aria-pressed="false" title="Toggle theme">
+          <span class="sr-only">Toggle theme</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+
+        <a class="amz-action__link" href="orders.html" title="Orders">
+          <span class="amz-action__small">Returns</span>
+          <span class="amz-action__big">& Orders</span>
+        </a>
+
+        <a class="amz-action__link" href="account.html" title="Account">
+          <span class="amz-action__small">Hello</span>
+          <span class="amz-action__big">Account</span>
+        </a>
+
+        <button class="amz-cart" type="button" onclick="window.location.href='cart.html'" aria-label="Open cart">
+          <span class="amz-cart__icon" aria-hidden="true">🛒</span>
+          <span class="amz-cart__badge" id="cart-count">0</span>
+          <span class="amz-cart__text">Cart</span>
+        </button>
+
+        <button class="amz-navToggle" type="button" id="navToggle" aria-expanded="false" aria-controls="amzNav">
+          <span></span><span></span><span></span>
+          <span class="sr-only">Open menu</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="amz-header__strip" id="amzNav">
+      <div class="amz-strip__left">
+       <a class="amz-strip__item" href="category.html?cat=cleaning">Cleaning</a>
+<a class="amz-strip__item" href="category.html?cat=art">Art Work</a>
+<a class="amz-strip__item" href="category.html?cat=outdoor">Outdoor</a>
+        <a class="amz-strip__item" href="combos.html">Combos</a>
+        <a class="amz-strip__item" href="specials.html">Specials</a>
+        <a class="amz-strip__item" href="about.html">About</a>
+        <a class="amz-strip__item" href="contact.html">Contact</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="amz-main">
+    <div class="pageHead">
+      <div>
+        <h1>Special Deals</h1>
+        <div class="hint">All currently active specials.</div>
+      </div>
+      <div class="hint" id="countHint"></div>
+    </div>
+
+    <div id="specialsWrap">
+      <div class="notice">Loading specials…</div>
+    </div>
+  </main>
+
+  <script>
+    /******************************************************************
+     *  SUPABASE CLIENT
+     ******************************************************************/
+    const SUPABASE_URL = "https://fiyzfcshjibeyuxhumto.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpeXpmY3NoamliZXl1eGh1bXRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTY4ODEsImV4cCI6MjA4MzI3Mjg4MX0.2ORnEDxG_aHWMs8t6Fqnu1Jpd4tWlgBsLrzCUotBSEg";
+    window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    (() => {
+      const sb = window.supabaseClient;
+
+      // Buckets/paths aligned to your home page
+      const PRODUCT_IMAGES_BUCKET = "product-images";
+      const FALLBACK_IMG = "images/Combo.jpg";
+
+      const SPECIALS_TIME_MODE = "assume_jhb";
+      const JHB_OFFSET = "+02:00";
+
+      const $ = (id) => document.getElementById(id);
+      function safeText(s){ return (s ?? "").toString(); }
+      function isHttp(url){ return /^https?:\/\//i.test(url); }
+      function formatMoney(amount){
+        const n = Number(amount || 0);
+        return "R " + n.toFixed(2);
+      }
+      function getSessionId(){
+        const key = "etoac_session_id";
+        let v = localStorage.getItem(key);
+        if (!v) {
+          v = "sess_" + crypto.randomUUID();
+          localStorage.setItem(key, v);
+        }
+        return v;
+      }
+
+      function productImageUrl(path){
+        if (!path) return "";
+        if (isHttp(path) || path.startsWith("images/") || path.startsWith("assets/")) return path;
+        try {
+          const { data } = sb.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
+          return data?.publicUrl || path;
+        } catch {
+          return path;
+        }
+      }
+
+      function calcDiscountedPrice(basePrice, sp){
+        const base = Number(basePrice);
+        if (!Number.isFinite(base)) return null;
+
+        const dv = Number(sp.discount_value);
+        if (sp.discount_type === "percentage") return base * (1 - (dv / 100));
+        if (sp.discount_type === "fixed_amount") return Math.max(0, base - dv);
+        return base;
+      }
+
+      function formatLeft(ms){
+        const total = Math.max(0, Math.floor(ms / 1000));
+        const h = String(Math.floor(total / 3600)).padStart(2,"0");
+        const m = String(Math.floor((total % 3600) / 60)).padStart(2,"0");
+        const s = String(total % 60).padStart(2,"0");
+        return `${h}:${m}:${s}`;
+      }
+
+      function parseSpecialEpoch(ts){
+        if (!ts) return null;
+        const raw = String(ts).trim();
+
+        const first = new Date(raw);
+        const firstOk = Number.isFinite(first.getTime());
+
+        if (SPECIALS_TIME_MODE === "db_utc") {
+          return firstOk ? first.getTime() : null;
+        }
+
+        const looksUTC =
+          /Z$/i.test(raw) ||
+          /\+00(?::?00)?$/i.test(raw) ||
+          /\+0000$/i.test(raw);
+
+        if (looksUTC) {
+          const fixed = raw
+            .replace(/Z$/i, JHB_OFFSET)
+            .replace(/\+00(?::?00)?$/i, JHB_OFFSET)
+            .replace(/\+0000$/i, JHB_OFFSET);
+
+          const d = new Date(fixed);
+          if (Number.isFinite(d.getTime())) return d.getTime();
+        }
+
+        return firstOk ? first.getTime() : null;
+      }
+
+      // ======= THEME =======
+      function initTheme(){
+        const key = "etoac_theme";
+        const saved = localStorage.getItem(key);
+        if (saved) document.body.setAttribute("data-theme", saved);
+
+        const btn = $("themeToggle");
+        if (!btn) return;
+
+        btn.addEventListener("click", () => {
+          const cur = document.body.getAttribute("data-theme") || "light";
+          const next = cur === "dark" ? "light" : "dark";
+          document.body.setAttribute("data-theme", next);
+          localStorage.setItem(key, next);
+          btn.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
+        });
+      }
+
+      function initMobileNav(){
+        const toggle = $("navToggle");
+        const nav = $("amzNav");
+        if (!toggle || !nav) return;
+
+        toggle.addEventListener("click", () => {
+          const isOpen = nav.classList.toggle("open");
+          toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+      }
+
+      function initSearch(){
+        const form = $("searchForm");
+        const input = $("searchInput");
+        const cat = $("searchCategory");
+        if (!form || !input || !cat) return;
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const q = input.value.trim();
+          const c = cat.value.trim();
+          const params = new URLSearchParams();
+          if (q) params.set("q", q);
+          if (c) params.set("cat", c);
+          window.location.href = `shop.html?${params.toString()}`;
+        });
+      }
+
+      async function loadCategoriesIntoSearch(){
+        const select = $("searchCategory");
+        if (!select) return;
+
+        const { data, error } = await sb
+          .from("categories")
+          .select("slug, name")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true });
+
+        if (error) return;
+
+        (data || []).forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.slug;
+          opt.textContent = c.name;
+          select.appendChild(opt);
+        });
+      }
+
+      async function refreshCartCount(){
+        const sessionId = getSessionId();
+        const { data, error } = await sb
+          .from("cart")
+          .select("quantity")
+          .eq("session_id", sessionId);
+
+        if (error) return;
+
+        const count = (data || []).reduce((sum, r) => sum + (Number(r.quantity) || 0), 0);
+        const el = $("cart-count");
+        if (el) el.textContent = String(count);
+      }
+
+      async function addToCart(productId, variantId, qty = 1){
+        const sessionId = getSessionId();
+
+        const { data: existing } = await sb
+          .from("cart")
+          .select("quantity")
+          .eq("session_id", sessionId)
+          .eq("product_id", productId)
+          .eq("variant_id", variantId)
+          .maybeSingle();
+
+        if (existing?.quantity != null) {
+          const newQty = (Number(existing.quantity) || 0) + qty;
+          const { error: updErr } = await sb
+            .from("cart")
+            .update({ quantity: newQty })
+            .eq("session_id", sessionId)
+            .eq("product_id", productId)
+            .eq("variant_id", variantId);
+
+          if (updErr) {
+            alert("Could not update cart: " + updErr.message);
+            return;
+          }
+        } else {
+          const { error: insErr } = await sb
+            .from("cart")
+            .insert({
+              session_id: sessionId,
+              product_id: productId,
+              variant_id: variantId,
+              quantity: qty
+            });
+
+          if (insErr) {
+            alert("Could not add to cart: " + insErr.message);
+            return;
+          }
+        }
+
+        await refreshCartCount();
+      }
+
+      function buildSpecialCard({ sp, product, variant, img, productName, variantLabel, basePrice, finalPrice, offLabel, endsAtMs }){
+        const showTimer = endsAtMs && endsAtMs > Date.now();
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "card";
+
+        wrapper.innerHTML = `
+          <div class="card__img">
+            <img src="${img}" alt="${safeText(productName)}" loading="lazy">
+          </div>
+          <div class="card__body">
+            <div class="deal-badges">
+              <span class="deal-badge">${safeText(offLabel)}</span>
+              <span class="deal-timer" data-timer>
+                ${showTimer ? `Ends in ${formatLeft(endsAtMs - Date.now())}` : `Limited time deal`}
+              </span>
+            </div>
+
+            <div class="deal-price">
+              <div class="deal-now">${finalPrice != null ? formatMoney(finalPrice) : "—"}</div>
+              ${basePrice != null ? `<div class="deal-was">${formatMoney(basePrice)}</div>` : ""}
+            </div>
+
+            <div class="deal-title">${safeText(productName)}${variantLabel ? ` - ${safeText(variantLabel)}` : ""}</div>
+
+            <div class="card__actions">
+              <button class="btn" type="button" data-view>View</button>
+              <button class="btn primary" type="button" data-add ${(variant && product) ? "" : "disabled"}>${variant ? "Add" : "No price"}</button>
+            </div>
+          </div>
+        `;
+
+        wrapper.querySelector("[data-view]").addEventListener("click", () => {
+          if (!product) {
+            alert("This special is missing a linked product. Please check product_id / variant_id in specials.");
+            return;
+          }
+          let url = product.slug ? `product.html?slug=${encodeURIComponent(product.slug)}` : `product.html?id=${encodeURIComponent(product.id)}`;
+          if (sp.variant_id) url += `&variant=${encodeURIComponent(sp.variant_id)}`;
+          url += `&special=${encodeURIComponent(sp.id)}`;
+          window.location.href = url;
+        });
+
+        wrapper.querySelector("[data-add]").addEventListener("click", async () => {
+          if (!product || !variant) return;
+          await addToCart(product.id, variant.id, 1);
+        });
+
+        if (showTimer) {
+          const el = wrapper.querySelector("[data-timer]");
+          const timerId = setInterval(() => {
+            const left = endsAtMs - Date.now();
+            if (left <= 0) {
+              el.textContent = "Deal ended";
+              clearInterval(timerId);
+              return;
+            }
+            el.textContent = `Ends in ${formatLeft(left)}`;
+          }, 1000);
+        }
+
+        return wrapper;
+      }
+
+      async function loadSpecialsPage(){
+        const wrap = $("specialsWrap");
+        const countHint = $("countHint");
+        if (!wrap) return;
+
+        const { data, error } = await sb
+          .from("specials")
+          .select("id, title, description, discount_type, discount_value, product_id, variant_id, starts_at, ends_at, is_active, created_at")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(200);
+
+        if (error) {
+          wrap.innerHTML = `<div class="notice">Error loading specials: ${safeText(error.message)}</div>`;
+          return;
+        }
+
+        const now = Date.now();
+        const active = (data || []).filter(sp => {
+          const startMs = parseSpecialEpoch(sp.starts_at);
+          const endMs = parseSpecialEpoch(sp.ends_at);
+          const startOk = (startMs == null) || (startMs <= now);
+          const endOk = (endMs == null) || (endMs >= now);
+          return startOk && endOk;
+        });
+
+        if (countHint) countHint.textContent = `${active.length} deal(s)`;
+
+        if (active.length === 0) {
+          wrap.innerHTML = `<div class="notice">No active specials at the moment.</div>`;
+          return;
+        }
+
+        // Collect product/variant ids for hydration
+        const productIds = [...new Set(active.map(x => x.product_id).filter(Boolean))];
+        const variantIds = [...new Set(active.map(x => x.variant_id).filter(Boolean))];
+
+        const [prodRes, varRes] = await Promise.all([
+          productIds.length
+            ? sb.from("products").select("id, name, slug, description, is_active").in("id", productIds)
+            : Promise.resolve({ data: [] }),
+          variantIds.length
+            ? sb.from("product_variants").select("id, product_id, label, price, Image_path, is_active").in("id", variantIds)
+            : Promise.resolve({ data: [] })
+        ]);
+
+        const productsById = new Map((prodRes.data || []).map(p => [p.id, p]));
+        const variantsById = new Map((varRes.data || []).map(v => [v.id, v]));
+
+        wrap.innerHTML = `<div class="grid" id="specialsGridPage"></div>`;
+        const grid = document.getElementById("specialsGridPage");
+
+        active.forEach(sp => {
+          let product = sp.product_id ? (productsById.get(sp.product_id) || null) : null;
+          let variant = sp.variant_id ? (variantsById.get(sp.variant_id) || null) : null;
+          if (!product && variant?.product_id) product = productsById.get(variant.product_id) || null;
+
+          let productName = product?.name || sp.title || "Special Deal";
+          let variantLabel = variant?.label || "";
+
+          // Prefer variant image if present
+          let img = FALLBACK_IMG;
+          if (variant?.Image_path) img = productImageUrl(variant.Image_path);
+
+          const basePrice = variant ? Number(variant.price) : null;
+          const finalPrice = variant ? calcDiscountedPrice(variant.price, sp) : null;
+
+          let offLabel = "Deal";
+          if (variant && Number.isFinite(basePrice) && Number.isFinite(finalPrice) && basePrice > 0) {
+            const pct = Math.round(((basePrice - finalPrice) / basePrice) * 100);
+            if (pct > 0) offLabel = `${pct}% off`;
+          } else if (sp.discount_type === "percentage") {
+            const pct = Math.round(Number(sp.discount_value) || 0);
+            if (pct > 0) offLabel = `${pct}% off`;
+          }
+
+          const endsAtMs = parseSpecialEpoch(sp.ends_at);
+
+          const card = buildSpecialCard({
+            sp, product, variant, img, productName, variantLabel, basePrice, finalPrice, offLabel, endsAtMs
+          });
+
+          grid.appendChild(card);
+        });
+      }
+
+      async function init(){
+        initTheme();
+        initMobileNav();
+        initSearch();
+        await loadCategoriesIntoSearch();
+        await refreshCartCount();
+        await loadSpecialsPage();
+      }
+
+      init().catch(err => {
+        console.error(err);
+        const wrap = $("specialsWrap");
+        if (wrap) wrap.innerHTML = `<div class="notice">Error loading page: ${safeText(err.message || err)}</div>`;
+      });
+    })();
+  </script>
+</body>
+</html>

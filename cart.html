@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ETOAC Cleaning & Arts | Cart & Delivery</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="cart">
+
+  <!-- HEADER -->
+    <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <!-- LEFT: Logo + Name + Tagline -->
+                <div class="header-left">
+          <div class="brand-line">
+            <img class="brand-logo" src="images/logo.png" alt="ETOAC Cleaning & Arts logo" />
+            <div>
+              <p class="brand-tagline">Clean Spaces. Crafted Stories.</p>
+            </div>
+          </div>
+        </div>
+
+                <!-- RIGHT: Nav + Cart (contacts moved to footer) -->
+        <div class="header-right">
+          <!-- keep this container for layout, but no numbers inside -->
+          <div class="header-contacts"></div>
+
+          <div class="header-theme">
+            <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false">
+              <span class="theme-icon theme-icon-sun" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+              </span>
+              <span class="theme-icon theme-icon-moon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+              </span>
+              <span class="sr-only">Toggle theme</span>
+            </button>
+          </div>
+          <div class="header-nav-row">
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+            <div class="nav-links" id="site-nav">
+              <button class="nav-close" type="button" aria-label="Close menu"></button>
+            <nav class="main-nav">
+                <a href="index.html">Home</a>
+                <a href="cleaning.html">Cleaning</a>
+                <a href="art.html">Art Work</a>
+                <a href="outdoor.html">Outdoor</a>
+                <a href="about.html">About Us</a>
+                <a href="contact.html">Contact</a>
+              </nav>
+              <button class="cart-icon" onclick="window.location.href='cart.html'">
+                Cart (<span id="cart-count">0</span>)
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+  <main>
+    <section class="section-cart">
+      <div class="container">
+        <header class="section-header">
+          <h2>Your Cart & Delivery</h2>
+          <p>Edit quantities, remove items and choose delivery before online payment is added.</p>
+        </header>
+
+        <div class="cart-layout">
+          <div class="cart-items">
+            <h3>Items in Cart</h3>
+            <div id="cart-empty-message" class="cart-empty">
+              Your cart is empty. Add products from the Cleaning or Art pages.
+            </div>
+            <div id="cart-items-container"></div>
+          </div>
+
+          <aside class="cart-summary">
+            <h3>Delivery & Summary</h3>
+
+            <div class="summary-row">
+              <span>Subtotal:</span>
+              <span id="cart-subtotal">R0.00</span>
+            </div>
+
+            <div class="delivery-options">
+              <h4>How would you like to get your order?</h4>
+
+              <label class="delivery-option">
+                <input type="radio" name="delivery" value="collect" checked />
+                <span>
+                  <strong>Collect in person</strong> – Free<br />
+                  <small>Collect at Shop 1 Shoprite Centre, Amalinda, East London.</small>
+                </span>
+              </label>
+
+              <label class="delivery-option">
+                <input type="radio" name="delivery" value="own" />
+                <span>
+                  <strong>Use my own delivery</strong> – Free<br />
+                  <small>You arrange Bolt, Uber or your own courier.</small>
+                </span>
+              </label>
+
+              <label class="delivery-option">
+                <input type="radio" name="delivery" value="ask" />
+                <span>
+                  <strong>Ask MJ to deliver</strong><br />
+                  <small>R25 – East London & Mdantsane, R75 – KWT & other areas.</small>
+                </span>
+              </label>
+
+              <div class="delivery-area hidden" id="delivery-area-wrapper">
+                <label for="delivery-area">Delivery area</label>
+                <select id="delivery-area">
+                  <option value="">Select area</option>
+                  <option value="el">East London & Mdantsane – R25</option>
+                  <option value="kwt">KWT & other areas – R75</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="summary-row">
+              <span>Delivery fee:</span>
+              <span id="cart-delivery">R0.00</span>
+            </div>
+
+            <div class="summary-row total-row">
+              <span>Total:</span>
+              <span id="cart-total">R0.00</span>
+            </div>
+
+            <button id="checkout-btn" class="btn-primary btn-full">
+              Proceed (Online Payment Coming Soon)
+            </button>
+
+            <p class="checkout-note">
+              Later, this button can send the order to your system, WhatsApp or an online payment gateway.
+            </p>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+    <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <!-- LEFT: Logo + Name + Slogan -->
+        <div class="footer-left">
+          <div class="brand-line footer-brand">
+            <img class="brand-logo small" src="images/logo.png" alt="ETOAC Cleaning & Arts logo" />
+            <div>
+              <div class="footer-tagline">Clean Spaces. Crafted Stories.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Address -->
+                <!-- RIGHT: Tel, WhatsApp & Address (moved from header) -->
+        <div class="footer-right">
+          <p class="footer-contact-line">
+            <span class="footer-label">Tel:</span>
+            <span>043 741 4044</span>
+          </p>
+          <p class="footer-contact-line">
+            <span class="footer-label">WhatsApp:</span>
+            <span>061 549 6146</span>
+          </p>
+          <p class="footer-contact-line footer-address">
+            Shop 1 Shoprite Centre<br>
+            Amalinda<br>
+            East London
+          </p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        @2025
+      </div>
+    </div>
+  </footer>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabaseClient.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

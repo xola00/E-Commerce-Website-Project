@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Shop by Category | ETOAC</title>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* ========= RESET ========= */
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    a{ color:inherit; text-decoration:none; }
+    img{ max-width:100%; display:block; }
+    button,input,select{ font:inherit; }
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+    /* ========= THEME ========= */
+    :root{
+      --bg:#ffffff;
+      --bg2:#f3f4f6;
+      --text:#111827;
+      --muted:#6b7280;
+      --card:#ffffff;
+      --border:#e5e7eb;
+      --shadow:0 8px 24px rgba(17,24,39,.08);
+
+      --nav:#408ef3;
+      --nav2:#232f3e;
+      --accent:#69f9fe;
+      --link:#0b74de;
+      --danger:#dc2626;
+      --success:#10b981;
+    }
+    body[data-theme="dark"]{
+      --bg:#0b1220;
+      --bg2:#0f1a2d;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --card:#0f1a2d;
+      --border:#1f2a44;
+      --shadow:0 10px 26px rgba(0,0,0,.35);
+    }
+    body{ background:var(--bg2); color:var(--text); }
+
+    /* ========= HEADER ========= */
+    .amz-header{ position:sticky; top:0; z-index:50; }
+    .amz-header__top{
+      display:grid;
+      grid-template-columns: 1fr minmax(260px,740px) auto;
+      gap:12px;
+      align-items:center;
+      padding:10px 12px;
+      background:var(--nav);
+      color:#fff;
+    }
+    .amz-brand{ display:flex; gap:10px; align-items:center; min-width:190px; }
+    .amz-brand__logo{
+      width:40px; height:40px; object-fit:contain;
+      border-radius:8px; background:rgba(255,255,255,.06); padding:4px;
+    }
+    .amz-brand__name{ font-weight:900; line-height:1.1; font-size:14px; }
+    .amz-brand__tagline{ font-size:12px; opacity:.85; }
+
+    .amz-search{
+      display:flex; background:#fff; border-radius:10px; overflow:hidden;
+      border:2px solid transparent;
+    }
+    .amz-search:focus-within{ border-color:var(--accent); }
+    .amz-search__select{ border:0; padding:10px 10px; background:#f3f4f6; color:#111827; max-width:140px; }
+    .amz-search__input{ border:0; padding:10px 12px; width:100%; outline:none; }
+    .amz-search__btn{
+      border:0; background:var(--accent); padding:0 14px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .amz-search__btn svg{ width:20px; height:20px; fill:#111827; }
+
+    .amz-actions{ display:flex; align-items:center; gap:10px; }
+    .amz-action__btn{
+      width:38px; height:38px; border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:#fff; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .amz-action__btn svg{ width:18px; height:18px; fill:#fff; }
+
+    .amz-action__link{
+      display:flex; flex-direction:column; gap:2px;
+      padding:6px 10px; border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .amz-action__small{ font-size:11px; opacity:.9; }
+    .amz-action__big{ font-size:13px; font-weight:900; }
+
+    .amz-cart{
+      position:relative;
+      display:flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff; border-radius:10px; cursor:pointer;
+    }
+    .amz-cart__badge{
+      position:absolute; top:-6px; left:18px;
+      background:var(--danger); color:#fff;
+      border-radius:999px; padding:2px 6px;
+      font-size:12px; font-weight:900;
+    }
+    .amz-cart__text{ font-weight:900; font-size:13px; }
+
+    .amz-navToggle{
+      display:none;
+      width:42px; height:42px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:10px; cursor:pointer;
+      flex-direction:column; justify-content:center; gap:5px;
+      padding:0 10px;
+    }
+    .amz-navToggle span{ height:2px; background:#fff; border-radius:9px; display:block; }
+
+    .amz-header__strip{
+      display:flex; justify-content:space-between; gap:10px;
+      padding:8px 12px;
+      background:var(--nav2);
+      color:#fff;
+      overflow:auto;
+    }
+    .amz-strip__left{ display:flex; gap:10px; align-items:center; flex-wrap:nowrap; }
+    .amz-strip__item{
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      white-space:nowrap; font-size:13px;
+    }
+    .amz-strip__right{ display:flex; gap:8px; align-items:center; }
+    .chip{
+      padding:6px 10px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;
+      font-size:12px; white-space:nowrap;
+    }
+
+    /* ========= MAIN ========= */
+    .amz-main{ padding:1px 1px 28px; max-width:1280px; margin:0 auto; }
+
+    /* ========= TITLES / HEADERS ========= */
+    .page-header{ margin:16px 0 8px; display:flex; justify-content:space-between; align-items:center; }
+    .page-header h1{ margin:0; font-size:20px; }
+    .page-header .subtitle{ font-size:14px; color:var(--muted); }
+
+    /* ========= GRID OF ITEMS ========= */
+    .items-grid{
+      display:grid;
+      gap:12px;
+      grid-template-columns:repeat(4,1fr);
+    }
+
+    /* ========= CARDS ========= */
+    .card{
+      border:1px solid var(--border);
+      border-radius:8px;
+      overflow:hidden;
+      background:var(--bg);
+      display:flex;
+      flex-direction:column;
+      transition:transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(0,0,0,.1);
+    }
+    .card__img{ height:120px; background:var(--bg2); display:flex; align-items:center; justify-content:center; }
+    .card__img img{ max-height:100%; max-width:100%; object-fit:contain; }
+    .card__body{ padding:10px; display:flex; flex-direction:column; gap:6px; }
+    .card__title{ font-size:14px; font-weight:900; line-height:1.2; }
+    .card__meta{ font-size:12px; color:var(--muted); }
+    .price{ font-weight:900; }
+    .badge{
+      display:inline-flex; align-items:center; gap:4px;
+      font-size:11px; padding:2px 8px;
+      border-radius:999px; width:fit-content;
+    }
+    .badge.combo{ background:#dbeafe; border:1px solid #93c5fd; color:#1e40af; }
+    body[data-theme="dark"] .badge.combo{ background:rgba(59,130,246,.1); border-color:rgba(59,130,246,.3); color:#60a5fa; }
+    .badge.deal{ background:var(--danger); border:1px solid var(--danger); color:#fff; }
+    .badge.product{ background:rgba(15,118,110,.08); border:1px solid rgba(15,118,110,.18); color:#0f766e; }
+    body[data-theme="dark"] .badge.product{ background:rgba(45,212,191,.08); border:1px solid rgba(45,212,191,.18); color:#2dd4bf; }
+
+    .card__actions{ display:flex; gap:8px; margin-top:6px; }
+    .btn{
+      border:1px solid var(--border);
+      background:var(--bg2);
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:5px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:12px;
+      flex:1;
+      transition:all 0.2s ease;
+    }
+    .btn.primary{
+      background:var(--accent);
+      border-color:rgba(0,0,0,.15);
+      color:#111827;
+    }
+    .btn:hover{
+      background:var(--border);
+    }
+    .btn.primary:hover{
+      background:var(--success);
+      border-color:var(--success);
+    }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+    /* ========= FILTER BAR ========= */
+    .filter-bar{
+      display:flex;
+      gap:8px;
+      margin-bottom:16px;
+      padding:12px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:8px;
+      flex-wrap:wrap;
+    }
+    .filter-bar select{
+      padding:8px 12px;
+      border:1px solid var(--border);
+      border-radius:6px;
+      background:var(--bg);
+      color:var(--text);
+      min-width:140px;
+    }
+
+    /* ========= FOOTER ========= */
+    .amz-footer{ margin-top:18px; background:var(--nav2); color:#fff; }
+    .amz-footer__top{ background:rgba(255,255,255,.06); padding:12px; display:flex; justify-content:center; }
+    .amz-footer__back{
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:900;
+    }
+    .amz-footer__cols{
+      max-width:1280px; margin:0 auto;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+      padding:18px 12px;
+    }
+    .amz-footer__cols h3{ margin:0 0 10px; font-size:14px; }
+    .amz-footer__cols a{ display:block; padding:6px 0; opacity:.92; font-size:13px; }
+    .amz-footer__bottom{
+      border-top:1px solid rgba(255,255,255,.12);
+      padding:12px;
+      text-align:center;
+      opacity:.9;
+      font-size:13px;
+    }
+
+    /* ========= NOTICE / EMPTY ========= */
+    .notice{
+      border:1px dashed var(--border);
+      border-radius:14px;
+      background:rgba(255,255,255,.6);
+      padding:12px;
+      color:var(--muted);
+      font-size:13px;
+      text-align:center;
+      grid-column:1/-1;
+    }
+    body[data-theme="dark"] .notice{
+      background:rgba(15,26,45,.6);
+    }
+
+    /* ========= LOADING ========= */
+    .loading{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:40px;
+      grid-column:1/-1;
+    }
+    .loading-spinner{
+      width:40px;
+      height:40px;
+      border:3px solid var(--border);
+      border-top-color:var(--accent);
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin{
+      0%{ transform:rotate(0deg); }
+      100%{ transform:rotate(360deg); }
+    }
+
+    /* ========= RESPONSIVE ========= */
+    @media (max-width:1100px){
+      .items-grid{ grid-template-columns:repeat(3,1fr); }
+      .amz-header__top{ grid-template-columns: 1fr minmax(220px,1fr) auto; }
+    }
+    @media (max-width:760px){
+      .items-grid{ grid-template-columns:repeat(2,1fr); }
+      .amz-header__top{
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "brand actions"
+          "search search";
+      }
+      .amz-brand{ grid-area:brand; min-width:0; }
+      .amz-actions{ grid-area:actions; }
+      .amz-search{ grid-area:search; }
+      .amz-action__link{ display:none; }
+      .amz-navToggle{ display:flex; }
+      .amz-header__strip{ display:none; flex-direction:column; align-items:flex-start; }
+      .amz-header__strip.open{ display:flex; }
+    }
+  </style>
+</head>
+
+<body data-page="category">
+  <!-- HEADER -->
+  <header class="amz-header">
+    <div class="amz-header__top">
+      <a class="amz-brand" href="index.html" aria-label="Go to home">
+        <img id="brandLogo" class="amz-brand__logo" src="images/logo.png" alt="ETOAC logo" />
+        <div class="amz-brand__text">
+          <div id="brandName" class="amz-brand__name">ETOAC Cleaning & Arts</div>
+          <div id="brandTagline" class="amz-brand__tagline">Clean Spaces. Crafted Stories.</div>
+        </div>
+      </a>
+
+      <form class="amz-search" id="searchForm" role="search">
+        <select class="amz-search__select" id="searchCategory" aria-label="Search category">
+          <option value="">All</option>
+        </select>
+        <input class="amz-search__input" id="searchInput" type="search" placeholder="Search..." autocomplete="off" />
+        <button class="amz-search__btn" type="submit" aria-label="Search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"></path></svg>
+        </button>
+      </form>
+
+      <div class="amz-actions">
+        <button class="amz-action__btn" type="button" id="themeToggle" aria-pressed="false" title="Toggle theme">
+          <span class="sr-only">Toggle theme</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+
+        <a class="amz-action__link" href="orders.html" title="Orders">
+          <span class="amz-action__small">Returns</span>
+          <span class="amz-action__big">& Orders</span>
+        </a>
+
+        <a class="amz-action__link" href="account.html" title="Account">
+          <span class="amz-action__small">Hello</span>
+          <span class="amz-action__big">Account</span>
+        </a>
+
+        <button class="amz-cart" type="button" onclick="window.location.href='cart.html'" aria-label="Open cart">
+          <span class="amz-cart__icon" aria-hidden="true">🛒</span>
+          <span class="amz-cart__badge" id="cart-count">0</span>
+          <span class="amz-cart__text">Cart</span>
+        </button>
+
+        <button class="amz-navToggle" type="button" id="navToggle" aria-expanded="false" aria-controls="amzNav">
+          <span></span><span></span><span></span>
+          <span class="sr-only">Open menu</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CATEGORY STRIP -->
+    <div class="amz-header__strip" id="amzNav">
+      <div class="amz-strip__left">
+         <a class="amz-strip__item" href="category.html?cat=cleaning">Cleaning</a>
+<a class="amz-strip__item" href="category.html?cat=art">Art Work</a>
+<a class="amz-strip__item" href="category.html?cat=outdoor">Outdoor</a>
+        <a class="amz-strip__item" href="combos.html">Combos</a>
+        <a class="amz-strip__item" href="specials.html">Specials</a>
+        <a class="amz-strip__item" href="about.html">About</a>
+        <a class="amz-strip__item" href="contact.html">Contact</a>
+      </div>
+      <div class="amz-strip__right" id="categoryChips"></div>
+    </div>
+  </header>
+
+  <main class="amz-main">
+    <div class="page-header">
+      <h1 id="categoryTitle">Category</h1>
+      <span class="subtitle" id="categorySubtitle"></span>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <select id="sortBy">
+        <option value="newest">Newest First</option>
+        <option value="price_low">Price: Low to High</option>
+        <option value="price_high">Price: High to Low</option>
+        <option value="name_asc">Name: A to Z</option>
+        <option value="name_desc">Name: Z to A</option>
+      </select>
+
+      <select id="filterType">
+        <option value="all">All Items</option>
+        <option value="products">Products Only</option>
+        <option value="specials">Specials Only</option>
+        <option value="combos">Combos Only</option>
+      </select>
+    </div>
+
+    <!-- ITEMS GRID -->
+    <div class="items-grid" id="itemsGrid">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="amz-footer">
+    <div class="amz-footer__top">
+      <button class="amz-footer__back" type="button" id="backToTop">Back to top</button>
+    </div>
+    <div class="amz-footer__cols">
+      <div>
+        <h3>Get to know us</h3>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div>
+        <h3>Shop</h3>
+        <a href="category.html?cat=cleaning">Cleaning</a>
+        <a href="category.html?cat=art">Art Work</a>
+        <a href="category.html?cat=outdoor">Outdoor</a>
+        <a href="combos.html">Combos</a>
+        <a href="specials.html">Specials</a>
+      </div>
+      <div>
+        <h3>Help</h3>
+        <a href="cart.html">Cart</a>
+        <a href="orders.html">Orders</a>
+      </div>
+    </div>
+    <div class="amz-footer__bottom">
+      ETOAC Cleaning & Arts • © <span id="yearNow"></span>
+    </div>
+  </footer>
+
+  <script>
+    /******************************************************************
+     *  SUPABASE CLIENT
+     ******************************************************************/
+    const SUPABASE_URL = "https://fiyzfcshjibeyuxhumto.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpeXpmY3NoamliZXl1eGh1bXRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTY4ODEsImV4cCI6MjA4MzI3Mjg4MX0.2ORnEDxG_aHWMs8t6Fqnu1Jpd4tWlgBsLrzCUotBSEg";
+    window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    /******************************************************************
+     *  CATEGORY PAGE SCRIPT
+     ******************************************************************/
+    (() => {
+      const sb = window.supabaseClient;
+      if (!sb) {
+        console.error("Supabase client not found.");
+        alert("Supabase client not found.");
+        return;
+      }
+
+      // ======= CONFIG =======
+      const PRODUCT_IMAGES_BUCKET = "product-images";
+      const COMBO_IMAGES_BUCKET = "comboImages";
+      const FALLBACK_IMG = "images/Combo.jpg";
+
+      const SPECIALS_TIME_MODE = "assume_jhb";
+      const JHB_OFFSET = "+02:00";
+
+      // ======= STATE =======
+      let currentCategory = null;
+      let products = [];
+      let combos = [];
+      let specials = [];
+
+      let variantsByProductId = new Map();
+      let imagesByProductId = new Map();
+
+      // ======= HELPERS =======
+      const $ = (id) => document.getElementById(id);
+      function safeText(s){ return (s ?? "").toString(); }
+      function isHttp(url){ return /^https?:\/\//i.test(url); }
+      function formatMoney(amount){
+        const n = Number(amount || 0);
+        return "R " + n.toFixed(2);
+      }
+      function getSessionId(){
+        const key = "etoac_session_id";
+        let v = localStorage.getItem(key);
+        if (!v) {
+          v = "sess_" + crypto.randomUUID();
+          localStorage.setItem(key, v);
+        }
+        return v;
+      }
+
+      function productImageUrl(path){
+        if (!path) return "";
+        if (isHttp(path) || path.startsWith("images/") || path.startsWith("assets/")) return path;
+        try {
+          const { data } = sb.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
+          return data?.publicUrl || path;
+        } catch {
+          return path;
+        }
+      }
+
+      function comboImageUrl(path){
+        if (!path) return "";
+        if (isHttp(path) || path.startsWith("images/") || path.startsWith("assets/")) return path;
+        try {
+          const { data } = sb.storage.from(COMBO_IMAGES_BUCKET).getPublicUrl(path);
+          return data?.publicUrl || path;
+        } catch {
+          return path;
+        }
+      }
+
+      function pickPrimaryImageFromList(images){
+        const list = images || [];
+        const primary = list.find(i => i.is_primary) || [...list].sort((a,b) => (a.sort_order||0) - (b.sort_order||0))[0];
+        return primary ? productImageUrl(primary.path) : FALLBACK_IMG;
+      }
+
+      function pickDefaultVariantFromList(variants){
+        const list = (variants || []).filter(v => v.is_active !== false);
+        if (list.length === 0) return null;
+        return list.find(v => v.is_default) || [...list].sort((a,b) => (a.sort_order||0) - (b.sort_order||0))[0];
+      }
+
+      function calcDiscountedPrice(basePrice, sp){
+        const base = Number(basePrice);
+        if (!Number.isFinite(base)) return null;
+        const dv = Number(sp.discount_value);
+        if (sp.discount_type === "percentage") return base * (1 - (dv / 100));
+        if (sp.discount_type === "fixed_amount") return Math.max(0, base - dv);
+        return base;
+      }
+
+      function parseSpecialEpoch(ts){
+        if (!ts) return null;
+        const raw = String(ts).trim();
+
+        const first = new Date(raw);
+        const firstOk = Number.isFinite(first.getTime());
+
+        if (SPECIALS_TIME_MODE === "db_utc") {
+          return firstOk ? first.getTime() : null;
+        }
+
+        const looksUTC =
+          /Z$/i.test(raw) ||
+          /\+00(?::?00)?$/i.test(raw) ||
+          /\+0000$/i.test(raw);
+
+        if (looksUTC) {
+          const fixed = raw
+            .replace(/Z$/i, JHB_OFFSET)
+            .replace(/\+00(?::?00)?$/i, JHB_OFFSET)
+            .replace(/\+0000$/i, JHB_OFFSET);
+
+          const d = new Date(fixed);
+          if (Number.isFinite(d.getTime())) return d.getTime();
+        }
+
+        return firstOk ? first.getTime() : null;
+      }
+
+      // ======= THEME =======
+      function initTheme(){
+        const key = "etoac_theme";
+        const saved = localStorage.getItem(key);
+        if (saved) document.body.setAttribute("data-theme", saved);
+
+        const btn = $("themeToggle");
+        if (!btn) return;
+
+        btn.addEventListener("click", () => {
+          const cur = document.body.getAttribute("data-theme") || "light";
+          const next = cur === "dark" ? "light" : "dark";
+          document.body.setAttribute("data-theme", next);
+          localStorage.setItem(key, next);
+          btn.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
+        });
+      }
+
+      // ======= MOBILE NAV =======
+      function initMobileNav(){
+        const toggle = $("navToggle");
+        const nav = $("amzNav");
+        if (!toggle || !nav) return;
+
+        toggle.addEventListener("click", () => {
+          const isOpen = nav.classList.toggle("open");
+          toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+      }
+
+      // ======= FOOTER =======
+      function initFooter(){
+        const y = $("yearNow");
+        if (y) y.textContent = String(new Date().getFullYear());
+        const back = $("backToTop");
+        if (back) back.addEventListener("click", () => window.scrollTo({ top:0, behavior:"smooth" }));
+      }
+
+      // ======= SEARCH =======
+      function initSearch(){
+        const form = $("searchForm");
+        const input = $("searchInput");
+        const cat = $("searchCategory");
+        if (!form || !input || !cat) return;
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const q = input.value.trim();
+          const c = cat.value.trim();
+          const params = new URLSearchParams();
+          if (q) params.set("q", q);
+          if (c) params.set("cat", c);
+          window.location.href = `shop.html?${params.toString()}`;
+        });
+      }
+
+      // ======= CART =======
+      async function refreshCartCount(){
+        const sessionId = getSessionId();
+        const { data, error } = await sb
+          .from("cart")
+          .select("quantity")
+          .eq("session_id", sessionId);
+
+        if (error) {
+          console.warn("Cart count load failed:", error.message);
+          return;
+        }
+
+        const count = (data || []).reduce((sum, r) => sum + (Number(r.quantity) || 0), 0);
+        const el = $("cart-count");
+        if (el) el.textContent = String(count);
+      }
+
+      async function addToCart(productId, variantId, qty = 1){
+        const sessionId = getSessionId();
+
+        const { data: existing, error: selErr } = await sb
+          .from("cart")
+          .select("quantity")
+          .eq("session_id", sessionId)
+          .eq("product_id", productId)
+          .eq("variant_id", variantId)
+          .maybeSingle();
+
+        if (selErr) console.warn("Cart select error:", selErr.message);
+
+        if (existing?.quantity != null) {
+          const newQty = (Number(existing.quantity) || 0) + qty;
+          const { error: updErr } = await sb
+            .from("cart")
+            .update({ quantity: newQty })
+            .eq("session_id", sessionId)
+            .eq("product_id", productId)
+            .eq("variant_id", variantId);
+
+          if (updErr) {
+            alert("Could not update cart: " + updErr.message);
+            return;
+          }
+        } else {
+          const { error: insErr } = await sb
+            .from("cart")
+            .insert({
+              session_id: sessionId,
+              product_id: productId,
+              variant_id: variantId,
+              quantity: qty
+            });
+
+          if (insErr) {
+            alert("Could not add to cart: " + insErr.message);
+            return;
+          }
+        }
+
+        await refreshCartCount();
+      }
+
+      // ======= URL PARAMS =======
+      function getCategorySlugFromUrl(){
+        const params = new URLSearchParams(window.location.search);
+        return params.get("cat") || "";
+      }
+
+      // ======= UI HELPERS =======
+      function showLoading(show){
+        const grid = $("itemsGrid");
+        if (!grid) return;
+
+        if (show) {
+          grid.innerHTML = `
+            <div class="loading">
+              <div class="loading-spinner"></div>
+            </div>
+          `;
+        }
+      }
+
+      function showError(message){
+        const grid = $("itemsGrid");
+        if (!grid) return;
+
+        grid.innerHTML = `
+          <div class="notice">
+            ${safeText(message)}<br>
+            <a href="index.html" style="color: var(--link); margin-top: 8px; display: inline-block;">Return to Home</a>
+          </div>
+        `;
+      }
+
+      function updateSubtitle(){
+        const total = (products?.length || 0) + (combos?.length || 0) + (specials?.length || 0);
+        const el = $("categorySubtitle");
+        if (el) el.textContent = `Showing ${total} item${total === 1 ? "" : "s"} in this category`;
+      }
+
+      // ======= LOAD CATEGORY (schema-correct: NO description column) =======
+      async function loadCategory(){
+        const slug = getCategorySlugFromUrl();
+        if (!slug) {
+          showError("No category specified (missing ?cat=slug)");
+          return null;
+        }
+
+        const { data, error } = await sb
+          .from("categories")
+          .select("id, slug, name, image_path")
+          .eq("slug", slug)
+          .eq("is_active", true)
+          .single();
+
+        if (error || !data) {
+          showError("Category not found");
+          return null;
+        }
+
+        currentCategory = data;
+        document.title = `${data.name} | ETOAC`;
+        $("categoryTitle").textContent = data.name;
+        $("categorySubtitle").textContent = "Loading items...";
+        return data;
+      }
+
+      // ======= LOAD PRODUCTS + VARIANTS + IMAGES =======
+      async function loadCategoryProducts(){
+        if (!currentCategory) return;
+
+        // Products
+        const { data: productsData, error: productsError } = await sb
+          .from("products")
+          .select("id, category_id, name, slug, description, featured, is_active, created_at")
+          .eq("category_id", currentCategory.id)
+          .eq("is_active", true)
+          .order("created_at", { ascending: false });
+
+        if (productsError) {
+          console.error("Error loading products:", productsError);
+          throw productsError;
+        }
+
+        products = productsData || [];
+        const productIds = products.map(p => p.id);
+
+        variantsByProductId.clear();
+        imagesByProductId.clear();
+
+        if (productIds.length === 0) return;
+
+        // Variants
+        const { data: variantsData, error: varErr } = await sb
+          .from("product_variants")
+          .select("id, product_id, label, price, sort_order, is_default, is_active, Image_path")
+          .in("product_id", productIds)
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true });
+
+        if (varErr) throw varErr;
+
+        (variantsData || []).forEach(v => {
+          const arr = variantsByProductId.get(v.product_id) || [];
+          arr.push(v);
+          variantsByProductId.set(v.product_id, arr);
+        });
+
+        // Images
+        const { data: imagesData, error: imgErr } = await sb
+          .from("product_images")
+          .select("id, product_id, path, alt, sort_order, is_primary")
+          .in("product_id", productIds)
+          .order("is_primary", { ascending: false })
+          .order("sort_order", { ascending: true });
+
+        if (imgErr) throw imgErr;
+
+        (imagesData || []).forEach(img => {
+          const arr = imagesByProductId.get(img.product_id) || [];
+          arr.push(img);
+          imagesByProductId.set(img.product_id, arr);
+        });
+      }
+
+      // ======= LOAD SPECIALS (only for products in this category) =======
+      async function loadCategorySpecials(){
+        specials = [];
+        if (!products || products.length === 0) return;
+
+        const productIds = products.map(p => p.id);
+
+        const { data, error } = await sb
+          .from("specials")
+          .select("id, title, description, discount_type, discount_value, product_id, variant_id, starts_at, ends_at, is_active, created_at")
+          .in("product_id", productIds)
+          .eq("is_active", true)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.warn("Load specials failed:", error.message);
+          return;
+        }
+
+        const now = Date.now();
+        specials = (data || []).filter(sp => {
+          const startMs = parseSpecialEpoch(sp.starts_at);
+          const endMs = parseSpecialEpoch(sp.ends_at);
+          const startOk = (startMs == null) || (startMs <= now);
+          const endOk = (endMs == null) || (endMs >= now);
+          return startOk && endOk;
+        });
+      }
+
+      // ======= LOAD COMBOS FOR CATEGORY (schema-based via combo_items) =======
+      async function loadCategoryCombos(){
+        combos = [];
+        if (!products || products.length === 0) return;
+
+        const productIds = products.map(p => p.id);
+
+        // Step 1: find combo_ids that include any product in this category
+        const { data: comboItems, error: ciErr } = await sb
+          .from("combo_items")
+          .select("combo_id")
+          .in("product_id", productIds);
+
+        if (ciErr) {
+          console.warn("Load combo_items failed:", ciErr.message);
+          return;
+        }
+
+        const comboIds = [...new Set((comboItems || []).map(r => r.combo_id).filter(Boolean))];
+        if (comboIds.length === 0) return;
+
+        // Step 2: load only those combos (active + date window)
+        const nowIso = new Date().toISOString();
+
+        const { data: comboRows, error: cErr } = await sb
+          .from("combos")
+          .select("id, name, description, combo_price, image_path, is_active, featured, sort_order, starts_at, ends_at, created_at")
+          .in("id", comboIds)
+          .eq("is_active", true)
+          .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+          .or(`ends_at.is.null,ends_at.gte.${nowIso}`)
+          .order("featured", { ascending: false })
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: false });
+
+        if (cErr) {
+          console.warn("Load combos failed:", cErr.message);
+          return;
+        }
+
+        combos = comboRows || [];
+      }
+
+      // ======= BUILD CARDS =======
+      function buildProductCard(product){
+        const img = pickPrimaryImageFromList(imagesByProductId.get(product.id));
+        const variants = variantsByProductId.get(product.id) || [];
+        const defaultVariant = pickDefaultVariantFromList(variants);
+        const price = defaultVariant ? formatMoney(defaultVariant.price) : "—";
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card__img"><img src="${img}" alt="${safeText(product.name)}" loading="lazy"></div>
+          <div class="card__body">
+            <span class="badge product">Product</span>
+            <div class="card__title">${safeText(product.name)}</div>
+            <div class="card__meta">${safeText((product.description || "").slice(0, 80))}${product.description && product.description.length > 80 ? "..." : ""}</div>
+            <div class="price">${price}</div>
+            <div class="card__actions">
+              <button class="btn" type="button" data-view>View</button>
+              <button class="btn primary" type="button" data-add ${defaultVariant ? "" : "disabled"}>${defaultVariant ? "Add" : "No price"}</button>
+            </div>
+          </div>
+        `;
+
+        card.querySelector("[data-view]").addEventListener("click", () => {
+          const url = product.slug
+            ? `product.html?slug=${encodeURIComponent(product.slug)}`
+            : `product.html?id=${encodeURIComponent(product.id)}`;
+          window.location.href = url;
+        });
+
+        card.querySelector("[data-add]").addEventListener("click", async () => {
+          if (!defaultVariant) return;
+          await addToCart(product.id, defaultVariant.id, 1);
+        });
+
+        return card;
+      }
+
+      function buildComboCard(combo){
+        const img = combo.image_path ? comboImageUrl(combo.image_path) : FALLBACK_IMG;
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card__img"><img src="${img}" alt="${safeText(combo.name)}" loading="lazy"></div>
+          <div class="card__body">
+            <span class="badge combo">Combo</span>
+            <div class="card__title">${safeText(combo.name)}</div>
+            <div class="card__meta">${safeText((combo.description || "").slice(0, 80))}${combo.description && combo.description.length > 80 ? "..." : ""}</div>
+            <div class="price">${formatMoney(combo.combo_price)}</div>
+            <div class="card__actions">
+              <button class="btn" type="button" data-view>View</button>
+              <button class="btn primary" type="button" data-buy>Buy</button>
+            </div>
+          </div>
+        `;
+
+        card.querySelector("[data-view]").addEventListener("click", () => {
+          window.location.href = `combo.html?id=${encodeURIComponent(combo.id)}`;
+        });
+
+        card.querySelector("[data-buy]").addEventListener("click", () => {
+          window.location.href = `combo.html?id=${encodeURIComponent(combo.id)}&buy=1`;
+        });
+
+        return card;
+      }
+
+      function buildSpecialCard(special){
+        const product = products.find(p => p.id === special.product_id) || null;
+
+        let img = FALLBACK_IMG;
+        let productName = special.title || "Special Deal";
+        let variantLabel = "";
+        let variant = null;
+
+        if (product) {
+          productName = product.name || productName;
+
+          const variants = variantsByProductId.get(product.id) || [];
+          // prefer the linked variant, else default variant
+          if (special.variant_id) {
+            variant = variants.find(v => v.id === special.variant_id) || null;
+          }
+          if (!variant) {
+            variant = pickDefaultVariantFromList(variants);
+          }
+
+          if (variant?.Image_path) img = productImageUrl(variant.Image_path);
+          else img = pickPrimaryImageFromList(imagesByProductId.get(product.id));
+
+          if (variant?.label) variantLabel = variant.label;
+        }
+
+        const basePrice = variant ? Number(variant.price) : null;
+        const finalPrice = (variant && basePrice != null) ? calcDiscountedPrice(basePrice, special) : null;
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card__img"><img src="${img}" alt="${safeText(productName)}" loading="lazy"></div>
+          <div class="card__body">
+            <span class="badge deal">Deal</span>
+            <div class="card__title">${safeText(productName)}${variantLabel ? ` - ${safeText(variantLabel)}` : ""}</div>
+            <div class="card__meta">${safeText(special.description || "")}</div>
+            <div class="price">${finalPrice != null ? formatMoney(finalPrice) : "Special"}</div>
+            <div class="card__actions">
+              <button class="btn" type="button" data-view>View</button>
+              <button class="btn primary" type="button" data-add ${(product && variant) ? "" : "disabled"}>${variant ? "Add" : "No price"}</button>
+            </div>
+          </div>
+        `;
+
+        card.querySelector("[data-view]").addEventListener("click", () => {
+          if (!product) return;
+          let url = product.slug
+            ? `product.html?slug=${encodeURIComponent(product.slug)}`
+            : `product.html?id=${encodeURIComponent(product.id)}`;
+          if (special.variant_id) url += `&variant=${encodeURIComponent(special.variant_id)}`;
+          url += `&special=${encodeURIComponent(special.id)}`;
+          window.location.href = url;
+        });
+
+        card.querySelector("[data-add]").addEventListener("click", async () => {
+          if (!product || !variant) return;
+          await addToCart(product.id, variant.id, 1);
+        });
+
+        return card;
+      }
+
+      // ======= RENDER ITEMS =======
+      function renderItems(){
+        const grid = $("itemsGrid");
+        if (!grid) return;
+
+        grid.innerHTML = "";
+
+        const filterType = $("filterType").value;
+        const sortBy = $("sortBy").value;
+
+        // Build combined items with prices where possible
+        let items = [];
+
+        if (filterType === "all" || filterType === "products") {
+          products.forEach(p => {
+            const v = pickDefaultVariantFromList(variantsByProductId.get(p.id) || []);
+            items.push({
+              type: "product",
+              item: p,
+              date: new Date(p.created_at || 0).getTime() || 0,
+              name: (p.name || "").toLowerCase(),
+              price: v ? Number(v.price) : null
+            });
+          });
+        }
+
+        if (filterType === "all" || filterType === "combos") {
+          combos.forEach(c => {
+            items.push({
+              type: "combo",
+              item: c,
+              date: new Date(c.created_at || 0).getTime() || 0,
+              name: (c.name || "").toLowerCase(),
+              price: Number(c.combo_price)
+            });
+          });
+        }
+
+        if (filterType === "all" || filterType === "specials") {
+          specials.forEach(sp => {
+            const p = products.find(x => x.id === sp.product_id) || null;
+            const vList = p ? (variantsByProductId.get(p.id) || []) : [];
+            let v = null;
+            if (sp.variant_id) v = vList.find(x => x.id === sp.variant_id) || null;
+            if (!v) v = pickDefaultVariantFromList(vList);
+            const basePrice = v ? Number(v.price) : null;
+            const finalPrice = (v && basePrice != null) ? calcDiscountedPrice(basePrice, sp) : null;
+
+            items.push({
+              type: "special",
+              item: sp,
+              date: new Date(sp.created_at || 0).getTime() || 0,
+              name: (p?.name || sp.title || "special").toLowerCase(),
+              price: finalPrice != null ? Number(finalPrice) : null
+            });
+          });
+        }
+
+        // Sort
+        items.sort((a, b) => {
+          switch(sortBy) {
+            case "price_low": {
+              const ap = a.price == null ? Number.POSITIVE_INFINITY : a.price;
+              const bp = b.price == null ? Number.POSITIVE_INFINITY : b.price;
+              return ap - bp;
+            }
+            case "price_high": {
+              const ap = a.price == null ? Number.NEGATIVE_INFINITY : a.price;
+              const bp = b.price == null ? Number.NEGATIVE_INFINITY : b.price;
+              return bp - ap;
+            }
+            case "name_asc":
+              return a.name.localeCompare(b.name);
+            case "name_desc":
+              return b.name.localeCompare(a.name);
+            case "newest":
+            default:
+              return (b.date || 0) - (a.date || 0);
+          }
+        });
+
+        if (items.length === 0) {
+          grid.innerHTML = `<div class="notice">No items found in this category.</div>`;
+          updateSubtitle();
+          return;
+        }
+
+        items.forEach(row => {
+          let card = null;
+          if (row.type === "product") card = buildProductCard(row.item);
+          if (row.type === "combo") card = buildComboCard(row.item);
+          if (row.type === "special") card = buildSpecialCard(row.item);
+          if (card) grid.appendChild(card);
+        });
+
+        updateSubtitle();
+      }
+
+      // ======= INIT FILTERS =======
+      function initFilters(){
+        const sortBy = $("sortBy");
+        const filterType = $("filterType");
+        if (sortBy) sortBy.addEventListener("change", renderItems);
+        if (filterType) filterType.addEventListener("change", renderItems);
+      }
+
+      // ======= LOAD CATEGORIES FOR DROPDOWN + CHIPS =======
+      async function loadCategoriesForDropdown(){
+        const { data, error } = await sb
+          .from("categories")
+          .select("id, slug, name")
+          .eq("is_active", true)
+          .order("name", { ascending: true });
+
+        if (error) return;
+
+        const chips = $("categoryChips");
+        const select = $("searchCategory");
+
+        if (select) {
+          select.querySelectorAll("option:not(:first-child)").forEach(o => o.remove());
+          (data || []).forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c.slug;
+            opt.textContent = c.name;
+            select.appendChild(opt);
+          });
+        }
+
+        if (chips) {
+          chips.innerHTML = "";
+          (data || []).slice(0, 8).forEach(c => {
+            const a = document.createElement("a");
+            a.className = "chip";
+            a.href = `category.html?cat=${encodeURIComponent(c.slug)}`;
+            a.textContent = c.name;
+            chips.appendChild(a);
+          });
+        }
+      }
+
+      // ======= INIT =======
+      async function init(){
+        initTheme();
+        initMobileNav();
+        initFooter();
+        initSearch();
+        initFilters();
+
+        await loadCategoriesForDropdown();
+        await refreshCartCount();
+
+        const category = await loadCategory();
+        if (!category) return;
+
+        showLoading(true);
+        try {
+          await loadCategoryProducts();
+          await loadCategoryCombos();     // filtered via combo_items + products in category
+          await loadCategorySpecials();   // only specials for products in this category
+          renderItems();
+        } catch (err) {
+          console.error(err);
+          showError("Error loading category data: " + (err.message || err));
+        } finally {
+          showLoading(false);
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>

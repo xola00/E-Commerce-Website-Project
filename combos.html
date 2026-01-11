@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ETOAC | Combos</title>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* ========= RESET ========= */
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    a{ color:inherit; text-decoration:none; }
+    img{ max-width:100%; display:block; }
+    button,input,select{ font:inherit; }
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+    /* ========= THEME ========= */
+    :root{
+      --bg:#ffffff;
+      --bg2:#f3f4f6;
+      --text:#111827;
+      --muted:#6b7280;
+      --card:#ffffff;
+      --border:#e5e7eb;
+      --shadow:0 8px 24px rgba(17,24,39,.08);
+
+      --nav:#408ef3;
+      --nav2:#232f3e;
+      --accent:#69f9fe;
+      --link:#0b74de;
+      --danger:#dc2626;
+      --success:#10b981;
+    }
+    body[data-theme="dark"]{
+      --bg:#0b1220;
+      --bg2:#0f1a2d;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --card:#0f1a2d;
+      --border:#1f2a44;
+      --shadow:0 10px 26px rgba(0,0,0,.35);
+    }
+    body{ background:var(--bg2); color:var(--text); }
+
+    /* ========= HEADER ========= */
+    .amz-header{ position:sticky; top:0; z-index:50; }
+    .amz-header__top{
+      display:grid;
+      grid-template-columns: 1fr minmax(260px,740px) auto;
+      gap:12px;
+      align-items:center;
+      padding:10px 12px;
+      background:var(--nav);
+      color:#fff;
+    }
+    .amz-brand{ display:flex; gap:10px; align-items:center; min-width:190px; }
+    .amz-brand__logo{
+      width:40px; height:40px; object-fit:contain;
+      border-radius:8px; background:rgba(255,255,255,.06); padding:4px;
+    }
+    .amz-brand__name{ font-weight:900; line-height:1.1; font-size:14px; }
+    .amz-brand__tagline{ font-size:12px; opacity:.85; }
+
+    .amz-search{
+      display:flex; background:#fff; border-radius:10px; overflow:hidden;
+      border:2px solid transparent;
+    }
+    .amz-search:focus-within{ border-color:var(--accent); }
+    .amz-search__select{ border:0; padding:10px 10px; background:#f3f4f6; color:#111827; max-width:140px; }
+    .amz-search__input{ border:0; padding:10px 12px; width:100%; outline:none; }
+    .amz-search__btn{
+      border:0; background:var(--accent); padding:0 14px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .amz-search__btn svg{ width:20px; height:20px; fill:#111827; }
+
+    .amz-actions{ display:flex; align-items:center; gap:10px; }
+    .amz-action__btn{
+      width:38px; height:38px; border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:#fff; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .amz-action__btn svg{ width:18px; height:18px; fill:#fff; }
+
+    .amz-action__link{
+      display:flex; flex-direction:column; gap:2px;
+      padding:6px 10px; border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .amz-action__small{ font-size:11px; opacity:.9; }
+    .amz-action__big{ font-size:13px; font-weight:900; }
+
+    .amz-cart{
+      position:relative;
+      display:flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff; border-radius:10px; cursor:pointer;
+    }
+    .amz-cart__badge{
+      position:absolute; top:-6px; left:18px;
+      background:var(--danger); color:#fff;
+      border-radius:999px; padding:2px 6px;
+      font-size:12px; font-weight:900;
+    }
+    .amz-cart__text{ font-weight:900; font-size:13px; }
+
+    .amz-navToggle{
+      display:none;
+      width:42px; height:42px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:10px; cursor:pointer;
+      flex-direction:column; justify-content:center; gap:5px;
+      padding:0 10px;
+    }
+    .amz-navToggle span{ height:2px; background:#fff; border-radius:9px; display:block; }
+
+    .amz-header__strip{
+      display:flex; justify-content:space-between; gap:10px;
+      padding:8px 12px;
+      background:var(--nav2);
+      color:#fff;
+      overflow:auto;
+    }
+    .amz-strip__left{ display:flex; gap:10px; align-items:center; flex-wrap:nowrap; }
+    .amz-strip__item{
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      white-space:nowrap; font-size:13px;
+    }
+
+    /* ========= MAIN ========= */
+    .amz-main{ padding:14px 12px 28px; max-width:1280px; margin:0 auto; }
+
+    .pageHead{
+      display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+      margin:6px 0 12px;
+    }
+    .pageHead h1{ margin:0; font-size:18px; }
+    .pageHead .hint{ color:var(--muted); font-size:13px; }
+
+    /* ========= GRID ========= */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:12px;
+    }
+
+    /* ========= CARDS ========= */
+    .card{
+      border:1px solid var(--border);
+      border-radius:8px;
+      overflow:hidden;
+      background:var(--bg);
+      display:flex;
+      flex-direction:column;
+      min-height:160px;
+      transition:transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(0,0,0,.1);
+    }
+    .card__img{
+      height:140px;
+      background: linear-gradient(to right, #dbeafe, #e0e7ff);
+      display:flex; align-items:center; justify-content:center;
+      border-bottom:1px solid var(--border);
+    }
+    .card__img img{
+      max-height:120px;
+      max-width:120px;
+      object-fit:contain;
+    }
+    .card__body{ padding:10px; display:flex; flex-direction:column; gap:6px; }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      width:fit-content;
+      padding:3px 8px;
+      border-radius:4px;
+      font-weight:900;
+      font-size:11px;
+      line-height:1;
+      background:#dbeafe;
+      border:1px solid #93c5fd;
+      color:#1e40af;
+    }
+    body[data-theme="dark"] .badge{
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+    }
+
+    .card__title{ font-size:13px; font-weight:900; line-height:1.2; }
+    .card__meta{ font-size:12px; color:var(--muted); }
+    .price{ font-weight:900; }
+
+    .card__actions{ display:flex; gap:8px; margin-top:6px; }
+    .btn{
+      border:1px solid var(--border);
+      background:var(--bg2);
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:5px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:12px;
+      flex:1;
+      transition:all 0.2s ease;
+    }
+    .btn.primary{
+      background:var(--accent);
+      border-color:rgba(0,0,0,.15);
+      color:#111827;
+    }
+    .btn:hover{ background:var(--border); }
+    .btn.primary:hover{ background:var(--success); border-color:var(--success); }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+    .notice{
+      border:1px dashed var(--border);
+      border-radius:14px;
+      background:rgba(255,255,255,.6);
+      padding:12px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    body[data-theme="dark"] .notice{ background:rgba(15,26,45,.6); }
+
+    /* ========= RESPONSIVE ========= */
+    @media (max-width:1100px){
+      .grid{ grid-template-columns: repeat(3, 1fr); }
+      .amz-header__top{ grid-template-columns: 1fr minmax(220px,1fr) auto; }
+    }
+    @media (max-width:860px){
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width:760px){
+      .amz-header__top{
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "brand actions"
+          "search search";
+      }
+      .amz-brand{ grid-area:brand; min-width:0; }
+      .amz-actions{ grid-area:actions; }
+      .amz-search{ grid-area:search; }
+      .amz-action__link{ display:none; }
+      .amz-navToggle{ display:flex; }
+      .amz-header__strip{ display:none; flex-direction:column; align-items:flex-start; }
+      .amz-header__strip.open{ display:flex; }
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width:420px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body data-page="combos" class="amz">
+  <!-- HEADER -->
+  <header class="amz-header">
+    <div class="amz-header__top">
+      <a class="amz-brand" href="index.html" aria-label="Go to home">
+        <img class="amz-brand__logo" src="images/logo.png" alt="ETOAC logo" />
+        <div class="amz-brand__text">
+          <div class="amz-brand__name">ETOAC Cleaning & Arts</div>
+          <div class="amz-brand__tagline">Clean Spaces. Crafted Stories.</div>
+        </div>
+      </a>
+
+      <form class="amz-search" id="searchForm" role="search">
+        <select class="amz-search__select" id="searchCategory" aria-label="Search category">
+          <option value="">All</option>
+        </select>
+        <input class="amz-search__input" id="searchInput" type="search" placeholder="Search detergents, art pieces, combos..." autocomplete="off" />
+        <button class="amz-search__btn" type="submit" aria-label="Search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"></path></svg>
+        </button>
+      </form>
+
+      <div class="amz-actions">
+        <button class="amz-action__btn" type="button" id="themeToggle" aria-pressed="false" title="Toggle theme">
+          <span class="sr-only">Toggle theme</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+
+        <a class="amz-action__link" href="orders.html" title="Orders">
+          <span class="amz-action__small">Returns</span>
+          <span class="amz-action__big">& Orders</span>
+        </a>
+
+        <a class="amz-action__link" href="account.html" title="Account">
+          <span class="amz-action__small">Hello</span>
+          <span class="amz-action__big">Account</span>
+        </a>
+
+        <button class="amz-cart" type="button" onclick="window.location.href='cart.html'" aria-label="Open cart">
+          <span class="amz-cart__icon" aria-hidden="true">🛒</span>
+          <span class="amz-cart__badge" id="cart-count">0</span>
+          <span class="amz-cart__text">Cart</span>
+        </button>
+
+        <button class="amz-navToggle" type="button" id="navToggle" aria-expanded="false" aria-controls="amzNav">
+          <span></span><span></span><span></span>
+          <span class="sr-only">Open menu</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="amz-header__strip" id="amzNav">
+      <div class="amz-strip__left">
+          <a class="amz-strip__item" href="category.html?cat=cleaning">Cleaning</a>
+<a class="amz-strip__item" href="category.html?cat=art">Art Work</a>
+<a class="amz-strip__item" href="category.html?cat=outdoor">Outdoor</a>
+        <a class="amz-strip__item" href="combos.html">Combos</a>
+        <a class="amz-strip__item" href="specials.html">Specials</a>
+        <a class="amz-strip__item" href="about.html">About</a>
+        <a class="amz-strip__item" href="contact.html">Contact</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="amz-main">
+    <div class="pageHead">
+      <div>
+        <h1>Combos</h1>
+        <div class="hint">Bundle packs that keep you stocked.</div>
+      </div>
+      <div class="hint" id="countHint"></div>
+    </div>
+
+    <div id="combosWrap">
+      <div class="notice">Loading combos…</div>
+    </div>
+  </main>
+
+  <script>
+    /******************************************************************
+     *  SUPABASE CLIENT
+     ******************************************************************/
+    const SUPABASE_URL = "https://fiyzfcshjibeyuxhumto.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpeXpmY3NoamliZXl1eGh1bXRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTY4ODEsImV4cCI6MjA4MzI3Mjg4MX0.2ORnEDxG_aHWMs8t6Fqnu1Jpd4tWlgBsLrzCUotBSEg";
+    window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    (() => {
+      const sb = window.supabaseClient;
+
+      const COMBO_IMAGES_BUCKET = "comboImages";
+      const FALLBACK_IMG = "images/Combo.jpg";
+
+      const $ = (id) => document.getElementById(id);
+      function safeText(s){ return (s ?? "").toString(); }
+      function isHttp(url){ return /^https?:\/\//i.test(url); }
+      function formatMoney(amount){
+        const n = Number(amount || 0);
+        return "R " + n.toFixed(2);
+      }
+      function getSessionId(){
+        const key = "etoac_session_id";
+        let v = localStorage.getItem(key);
+        if (!v) {
+          v = "sess_" + crypto.randomUUID();
+          localStorage.setItem(key, v);
+        }
+        return v;
+      }
+
+      function comboImageUrl(path){
+        if (!path) return "";
+        if (isHttp(path) || path.startsWith("images/") || path.startsWith("assets/")) return path;
+        try {
+          const { data } = sb.storage.from(COMBO_IMAGES_BUCKET).getPublicUrl(path);
+          return data?.publicUrl || path;
+        } catch {
+          return path;
+        }
+      }
+
+      // ======= THEME =======
+      function initTheme(){
+        const key = "etoac_theme";
+        const saved = localStorage.getItem(key);
+        if (saved) document.body.setAttribute("data-theme", saved);
+
+        const btn = $("themeToggle");
+        if (!btn) return;
+
+        btn.addEventListener("click", () => {
+          const cur = document.body.getAttribute("data-theme") || "light";
+          const next = cur === "dark" ? "light" : "dark";
+          document.body.setAttribute("data-theme", next);
+          localStorage.setItem(key, next);
+          btn.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
+        });
+      }
+
+      function initMobileNav(){
+        const toggle = $("navToggle");
+        const nav = $("amzNav");
+        if (!toggle || !nav) return;
+
+        toggle.addEventListener("click", () => {
+          const isOpen = nav.classList.toggle("open");
+          toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+      }
+
+      function initSearch(){
+        const form = $("searchForm");
+        const input = $("searchInput");
+        const cat = $("searchCategory");
+        if (!form || !input || !cat) return;
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const q = input.value.trim();
+          const c = cat.value.trim();
+          const params = new URLSearchParams();
+          if (q) params.set("q", q);
+          if (c) params.set("cat", c);
+          window.location.href = `shop.html?${params.toString()}`;
+        });
+      }
+
+      async function loadCategoriesIntoSearch(){
+        const select = $("searchCategory");
+        if (!select) return;
+
+        const { data, error } = await sb
+          .from("categories")
+          .select("slug, name")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true });
+
+        if (error) return;
+
+        (data || []).forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.slug;
+          opt.textContent = c.name;
+          select.appendChild(opt);
+        });
+      }
+
+      async function refreshCartCount(){
+        const sessionId = getSessionId();
+        const { data, error } = await sb
+          .from("cart")
+          .select("quantity")
+          .eq("session_id", sessionId);
+
+        if (error) return;
+
+        const count = (data || []).reduce((sum, r) => sum + (Number(r.quantity) || 0), 0);
+        const el = $("cart-count");
+        if (el) el.textContent = String(count);
+      }
+
+      function buildComboCard(c){
+        const img = c.image_path ? comboImageUrl(c.image_path) : FALLBACK_IMG;
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card__img">
+            <img src="${img}" alt="${safeText(c.name)}" loading="lazy">
+          </div>
+          <div class="card__body">
+            <span class="badge">Combo</span>
+            <div class="card__title">${safeText(c.name)}</div>
+            <div class="card__meta">${safeText((c.description || "").slice(0, 70))}</div>
+            <div class="price">${formatMoney(c.combo_price)}</div>
+            <div class="card__actions">
+              <button class="btn" type="button" data-view>View</button>
+              <button class="btn primary" type="button" data-buy>Buy</button>
+            </div>
+          </div>
+        `;
+
+        card.querySelector("[data-view]").addEventListener("click", () => {
+          window.location.href = `combo.html?id=${encodeURIComponent(c.id)}`;
+        });
+
+        card.querySelector("[data-buy]").addEventListener("click", () => {
+          window.location.href = `combo.html?id=${encodeURIComponent(c.id)}&buy=1`;
+        });
+
+        return card;
+      }
+
+      async function loadCombosPage(){
+        const wrap = $("combosWrap");
+        const countHint = $("countHint");
+        if (!wrap) return;
+
+        const nowIso = new Date().toISOString();
+
+        const { data, error } = await sb
+          .from("combos")
+          .select("id, name, description, combo_price, image_path, featured, is_active, starts_at, ends_at, sort_order")
+          .eq("is_active", true)
+          .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+          .or(`ends_at.is.null,ends_at.gte.${nowIso}`)
+          .order("featured", { ascending: false })
+          .order("sort_order", { ascending: true })
+          .limit(200);
+
+        if (error) {
+          wrap.innerHTML = `<div class="notice">Could not load combos: ${safeText(error.message)}</div>`;
+          return;
+        }
+
+        const rows = data || [];
+        if (countHint) countHint.textContent = `${rows.length} combo(s)`;
+
+        if (rows.length === 0) {
+          wrap.innerHTML = `<div class="notice">No combos available right now.</div>`;
+          return;
+        }
+
+        wrap.innerHTML = `<div class="grid" id="combosGridPage"></div>`;
+        const grid = document.getElementById("combosGridPage");
+
+        rows.forEach(c => grid.appendChild(buildComboCard(c)));
+      }
+
+      async function init(){
+        initTheme();
+        initMobileNav();
+        initSearch();
+        await loadCategoriesIntoSearch();
+        await refreshCartCount();
+        await loadCombosPage();
+      }
+
+      init().catch(err => {
+        console.error(err);
+        const wrap = $("combosWrap");
+        if (wrap) wrap.innerHTML = `<div class="notice">Error loading page: ${safeText(err.message || err)}</div>`;
+      });
+    })();
+  </script>
+</body>
+</html>

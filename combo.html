@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Combo | ETOAC</title>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    a{ color:inherit; text-decoration:none; }
+    img{ max-width:100%; display:block; }
+    button,input,select{ font:inherit; }
+
+    :root{
+      --bg:#ffffff;
+      --bg2:#f3f4f6;
+      --text:#111827;
+      --muted:#6b7280;
+      --card:#ffffff;
+      --border:#e5e7eb;
+      --shadow:0 8px 24px rgba(17,24,39,.08);
+
+      --nav:#408ef3;
+      --nav2:#232f3e;
+      --accent:#69f9fe;
+      --link:#0b74de;
+      --danger:#dc2626;
+      --success:#10b981;
+    }
+    body[data-theme="dark"]{
+      --bg:#0b1220;
+      --bg2:#0f1a2d;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --card:#0f1a2d;
+      --border:#1f2a44;
+      --shadow:0 10px 26px rgba(0,0,0,.35);
+    }
+    body{ background:var(--bg2); color:var(--text); }
+
+    /* HEADER (same structure, lightweight) */
+    .amz-header{ position:sticky; top:0; z-index:50; }
+    .amz-header__top{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:12px;
+      align-items:center;
+      padding:10px 12px;
+      background:var(--nav);
+      color:#fff;
+    }
+    .amz-brand{ display:flex; gap:10px; align-items:center; }
+    .amz-brand__logo{
+      width:40px; height:40px; object-fit:contain;
+      border-radius:8px; background:rgba(255,255,255,.06); padding:4px;
+    }
+    .amz-brand__name{ font-weight:900; line-height:1.1; font-size:14px; }
+    .amz-brand__tagline{ font-size:12px; opacity:.85; }
+
+    .amz-actions{ display:flex; align-items:center; gap:10px; }
+    .amz-action__btn{
+      width:38px; height:38px; border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:#fff; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .amz-cart{
+      position:relative;
+      display:flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff; border-radius:10px; cursor:pointer;
+    }
+    .amz-cart__badge{
+      position:absolute; top:-6px; left:18px;
+      background:var(--danger); color:#fff;
+      border-radius:999px; padding:2px 6px;
+      font-size:12px; font-weight:900;
+    }
+    .amz-cart__text{ font-weight:900; font-size:13px; }
+
+    /* MAIN */
+    .wrap{ max-width:1100px; margin:16px auto; padding:0 12px; }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .hero{
+      display:flex;
+      gap:12px;
+      padding:12px;
+      align-items:stretch;
+    }
+    .hero__img{
+      width:340px; max-width:44%;
+      border-radius:10px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      background:var(--bg2);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .hero__img img{ width:100%; height:100%; object-fit:cover; }
+    .hero__body{ flex:1; display:flex; flex-direction:column; gap:8px; }
+    .title{ margin:0; font-size:20px; font-weight:900; line-height:1.2; }
+    .meta{ color:var(--muted); font-size:13px; }
+    .priceLine{ display:flex; align-items:baseline; gap:10px; margin-top:4px; }
+    .price{ font-size:22px; font-weight:1000; }
+    .pill{
+      display:inline-flex; align-items:center;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(16,185,129,.12);
+      border:1px solid rgba(16,185,129,.20);
+      color:var(--success);
+      font-weight:900;
+      font-size:12px;
+      width:fit-content;
+    }
+
+    .actions{ display:flex; gap:10px; margin-top:8px; }
+    .btn{
+      border:1px solid var(--border);
+      background:var(--bg2);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:13px;
+      flex:1;
+      transition:.2s;
+    }
+    .btn.primary{
+      background:var(--accent);
+      border-color:rgba(0,0,0,.10);
+      color:#111827;
+    }
+    .btn.primary:hover{ background:var(--success); border-color:var(--success); }
+    .btn:hover{ background:var(--border); }
+    .btn:disabled{ opacity:.65; cursor:not-allowed; }
+
+    .section{ padding:12px; border-top:1px solid var(--border); }
+    .section h2{ margin:0 0 10px; font-size:14px; }
+    .items{ display:flex; flex-direction:column; gap:10px; }
+
+    .item{
+      display:grid;
+      grid-template-columns: 64px 1fr auto;
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:var(--bg);
+    }
+    .item__img{
+      width:64px; height:64px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:var(--bg2);
+      overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .item__img img{ width:100%; height:100%; object-fit:contain; }
+    .item__name{ font-weight:900; font-size:13px; line-height:1.2; }
+    .item__sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+    .item__qty{
+      font-weight:900;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(64,142,243,.10);
+      border:1px solid rgba(64,142,243,.20);
+      color:var(--text);
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .summary{
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .summaryRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .summaryRow strong{ color:var(--text); }
+    .hr{ height:1px; background:var(--border); }
+
+    .notice{
+      border:1px dashed var(--border);
+      border-radius:14px;
+      background:rgba(255,255,255,.6);
+      padding:12px;
+      color:var(--muted);
+      font-size:13px;
+      text-align:center;
+    }
+    body[data-theme="dark"] .notice{ background:rgba(15,26,45,.6); }
+
+    @media (max-width:900px){
+      .grid{ grid-template-columns: 1fr; }
+      .hero{ flex-direction:column; }
+      .hero__img{ width:100%; max-width:100%; height:220px; }
+    }
+  </style>
+</head>
+
+<body data-page="combo">
+  <header class="amz-header">
+    <div class="amz-header__top">
+      <a class="amz-brand" href="index.html">
+        <img class="amz-brand__logo" src="images/logo.png" alt="ETOAC logo" />
+        <div>
+          <div class="amz-brand__name">ETOAC Cleaning & Arts</div>
+          <div class="amz-brand__tagline">Clean Spaces. Crafted Stories.</div>
+        </div>
+      </a>
+
+      <div class="amz-actions">
+        <button class="amz-action__btn" type="button" id="themeToggle" title="Toggle theme" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="white" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+
+        <button class="amz-cart" type="button" onclick="window.location.href='cart.html'">
+          <span aria-hidden="true">🛒</span>
+          <span class="amz-cart__badge" id="cart-count">0</span>
+          <span class="amz-cart__text">Cart</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+      <!-- LEFT: combo detail -->
+      <section class="card" id="comboCard">
+        <div class="hero">
+          <div class="hero__img">
+            <img id="comboImg" src="images/Combo.jpg" alt="Combo image">
+          </div>
+          <div class="hero__body">
+            <div class="pill">Combo Deal</div>
+            <h1 class="title" id="comboName">Loading...</h1>
+            <div class="meta" id="comboDesc"></div>
+
+            <div class="priceLine">
+              <div class="price" id="comboPrice">—</div>
+              <div class="meta" id="comboWindow"></div>
+            </div>
+
+            <div class="actions">
+              <button class="btn" type="button" id="backBtn">Back</button>
+              <button class="btn primary" type="button" id="buyComboBtn" disabled>Buy Combo</button>
+            </div>
+
+            <div class="meta" id="buyHint"></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>What’s inside</h2>
+          <div class="items" id="itemsList"></div>
+        </div>
+      </section>
+
+      <!-- RIGHT: summary -->
+      <aside class="card">
+        <div class="summary">
+          <h2 style="margin:0; font-size:14px;">Order Summary</h2>
+
+          <div class="summaryRow">
+            <span>Items in combo</span>
+            <strong id="summaryCount">0</strong>
+          </div>
+
+          <div class="summaryRow">
+            <span>Total quantity</span>
+            <strong id="summaryQty">0</strong>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="summaryRow" style="font-size:14px;">
+            <span>Combo price</span>
+            <strong id="summaryPrice">—</strong>
+          </div>
+
+          <div class="notice" id="sideNotice" style="display:none;"></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    /******************************************************************
+     *  SUPABASE CLIENT
+     ******************************************************************/
+    const SUPABASE_URL = "https://fiyzfcshjibeyuxhumto.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpeXpmY3NoamliZXl1eGh1bXRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTY4ODEsImV4cCI6MjA4MzI3Mjg4MX0.2ORnEDxG_aHWMs8t6Fqnu1Jpd4tWlgBsLrzCUotBSEg";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    /******************************************************************
+     *  CONFIG
+     ******************************************************************/
+    const PRODUCT_IMAGES_BUCKET = "product-images";
+    const COMBO_IMAGES_BUCKET = "comboImages";
+    const FALLBACK_IMG = "images/Combo.jpg";
+
+    const $ = (id) => document.getElementById(id);
+    function safeText(v){ return (v ?? "").toString(); }
+    function isHttp(url){ return /^https?:\/\//i.test(url); }
+    function formatMoney(amount){
+      const n = Number(amount || 0);
+      return "R " + n.toFixed(2);
+    }
+
+    function getSessionId(){
+      const key = "etoac_session_id";
+      let v = localStorage.getItem(key);
+      if (!v) {
+        v = "sess_" + crypto.randomUUID();
+        localStorage.setItem(key, v);
+      }
+      return v;
+    }
+
+    function productImageUrl(path){
+      if (!path) return "";
+      if (isHttp(path) || path.startsWith("images/") || path.startsWith("assets/")) return path;
+      try{
+        const { data } = sb.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
+        return data?.publicUrl || path;
+      }catch{ return path; }
+    }
+
+    function comboImageUrl(path){
+      if (!path) return "";
+      if (isHttp(path) || path.startsWith("images/") || path.startsWith("assets/")) return path;
+      try{
+        const { data } = sb.storage.from(COMBO_IMAGES_BUCKET).getPublicUrl(path);
+        return data?.publicUrl || path;
+      }catch{ return path; }
+    }
+
+    function pickPrimaryImage(images){
+      const list = images || [];
+      const primary = list.find(i => i.is_primary) || [...list].sort((a,b) => (a.sort_order||0) - (b.sort_order||0))[0];
+      return primary ? productImageUrl(primary.path) : FALLBACK_IMG;
+    }
+
+    function pickDefaultVariant(variants){
+      const list = (variants || []).filter(v => v.is_active !== false);
+      if (!list.length) return null;
+      return list.find(v => v.is_default) || [...list].sort((a,b)=> (a.sort_order||0) - (b.sort_order||0))[0];
+    }
+
+    async function refreshCartCount(){
+      const sessionId = getSessionId();
+      const { data, error } = await sb.from("cart").select("quantity").eq("session_id", sessionId);
+      if (error) return;
+      const count = (data || []).reduce((s,r)=> s + (Number(r.quantity)||0), 0);
+      $("cart-count").textContent = String(count);
+    }
+
+    async function addToCart(productId, variantId, qty){
+      const sessionId = getSessionId();
+
+      const { data: existing, error: selErr } = await sb
+        .from("cart")
+        .select("quantity")
+        .eq("session_id", sessionId)
+        .eq("product_id", productId)
+        .eq("variant_id", variantId)
+        .maybeSingle();
+
+      if (selErr) console.warn("Cart select error:", selErr.message);
+
+      if (existing?.quantity != null) {
+        const newQty = (Number(existing.quantity) || 0) + qty;
+        const { error: updErr } = await sb
+          .from("cart")
+          .update({ quantity: newQty })
+          .eq("session_id", sessionId)
+          .eq("product_id", productId)
+          .eq("variant_id", variantId);
+        if (updErr) throw updErr;
+      } else {
+        const { error: insErr } = await sb
+          .from("cart")
+          .insert({
+            session_id: sessionId,
+            product_id: productId,
+            variant_id: variantId,
+            quantity: qty
+          });
+        if (insErr) throw insErr;
+      }
+    }
+
+    function initTheme(){
+      const key = "etoac_theme";
+      const saved = localStorage.getItem(key);
+      if (saved) document.body.setAttribute("data-theme", saved);
+
+      const btn = $("themeToggle");
+      btn.addEventListener("click", () => {
+        const cur = document.body.getAttribute("data-theme") || "light";
+        const next = cur === "dark" ? "light" : "dark";
+        document.body.setAttribute("data-theme", next);
+        localStorage.setItem(key, next);
+        btn.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
+      });
+    }
+
+    function getComboId(){
+      const params = new URLSearchParams(window.location.search);
+      return params.get("id") || "";
+    }
+
+    function formatWindow(starts_at, ends_at){
+      if (!starts_at && !ends_at) return "";
+      const s = starts_at ? new Date(starts_at).toLocaleDateString() : null;
+      const e = ends_at ? new Date(ends_at).toLocaleDateString() : null;
+      if (s && e) return `Valid: ${s} - ${e}`;
+      if (s && !e) return `Starts: ${s}`;
+      if (!s && e) return `Ends: ${e}`;
+      return "";
+    }
+
+    function setSideNotice(msg){
+      const el = $("sideNotice");
+      if (!msg){
+        el.style.display = "none";
+        el.textContent = "";
+        return;
+      }
+      el.style.display = "block";
+      el.textContent = msg;
+    }
+
+    async function loadCombo(){
+      const comboId = getComboId();
+      if (!comboId) {
+        $("comboName").textContent = "Combo not found";
+        $("comboDesc").textContent = "Missing ?id= in the URL.";
+        setSideNotice("No combo ID in URL. Example: combo.html?id=YOUR_UUID");
+        return null;
+      }
+
+      // Combo row
+      const { data: combo, error: comboErr } = await sb
+        .from("combos")
+        .select("id, name, description, combo_price, image_path, starts_at, ends_at, is_active")
+        .eq("id", comboId)
+        .maybeSingle();
+
+      if (comboErr || !combo) {
+        $("comboName").textContent = "Combo not found";
+        $("comboDesc").textContent = comboErr ? comboErr.message : "No record found.";
+        setSideNotice("This combo ID does not exist in your combos table.");
+        return null;
+      }
+
+      if (combo.is_active === false) {
+        setSideNotice("This combo is currently inactive.");
+      }
+
+      // UI combo
+      document.title = `${combo.name} | ETOAC`;
+      $("comboName").textContent = combo.name;
+      $("comboDesc").textContent = combo.description || "";
+      $("comboPrice").textContent = formatMoney(combo.combo_price);
+      $("summaryPrice").textContent = formatMoney(combo.combo_price);
+      $("comboWindow").textContent = formatWindow(combo.starts_at, combo.ends_at);
+
+      const img = combo.image_path ? comboImageUrl(combo.image_path) : FALLBACK_IMG;
+      $("comboImg").src = img;
+
+      // Combo items (your schema: combo_items has sort_order; NO created_at)
+      const { data: items, error: itemsErr } = await sb
+        .from("combo_items")
+        .select("id, combo_id, product_id, variant_id, quantity, sort_order")
+        .eq("combo_id", comboId)
+        .order("sort_order", { ascending: true });
+
+      if (itemsErr) {
+        $("itemsList").innerHTML = `<div class="notice">Error loading combo items: ${safeText(itemsErr.message)}</div>`;
+        return null;
+      }
+
+      const rows = items || [];
+      if (!rows.length) {
+        $("itemsList").innerHTML = `<div class="notice">This combo has no items yet.</div>`;
+        $("buyComboBtn").disabled = true;
+        $("buyHint").textContent = "Admin must add combo items first.";
+        return { combo, items: [] };
+      }
+
+      // load products
+      const productIds = [...new Set(rows.map(r => r.product_id))];
+      const { data: prodRows, error: prodErr } = await sb
+        .from("products")
+        .select("id, name, slug, description, is_active, category_id")
+        .in("id", productIds);
+
+      if (prodErr) {
+        $("itemsList").innerHTML = `<div class="notice">Error loading products: ${safeText(prodErr.message)}</div>`;
+        return null;
+      }
+
+      const productMap = new Map((prodRows || []).map(p => [p.id, p]));
+
+      // load variants
+      const { data: varRows, error: varErr } = await sb
+        .from("product_variants")
+        .select("id, product_id, label, price, sort_order, is_default, is_active, Image_path")
+        .in("product_id", productIds)
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+
+      if (varErr) {
+        $("itemsList").innerHTML = `<div class="notice">Error loading variants: ${safeText(varErr.message)}</div>`;
+        return null;
+      }
+
+      const variantsByProduct = new Map();
+      (varRows || []).forEach(v => {
+        const arr = variantsByProduct.get(v.product_id) || [];
+        arr.push(v);
+        variantsByProduct.set(v.product_id, arr);
+      });
+      const variantMap = new Map((varRows || []).map(v => [v.id, v]));
+
+      // load images
+      const { data: imgRows, error: imgErr } = await sb
+        .from("product_images")
+        .select("id, product_id, path, is_primary, sort_order")
+        .in("product_id", productIds)
+        .order("is_primary", { ascending: false })
+        .order("sort_order", { ascending: true });
+
+      if (imgErr) {
+        // not fatal
+        console.warn("Could not load product_images:", imgErr.message);
+      }
+
+      const imagesByProduct = new Map();
+      (imgRows || []).forEach(im => {
+        const arr = imagesByProduct.get(im.product_id) || [];
+        arr.push(im);
+        imagesByProduct.set(im.product_id, arr);
+      });
+
+      // resolve each item to a final variant (required for cart)
+      const resolved = rows.map(r => {
+        const p = productMap.get(r.product_id) || null;
+        const forcedVariant = r.variant_id ? (variantMap.get(r.variant_id) || null) : null;
+        const defaultVariant = pickDefaultVariant(variantsByProduct.get(r.product_id) || []);
+        const useVariant = forcedVariant || defaultVariant || null;
+
+        // image priority: variant.Image_path, else product_images primary, else fallback
+        let img = FALLBACK_IMG;
+        if (useVariant?.Image_path) img = productImageUrl(useVariant.Image_path);
+        else img = pickPrimaryImage(imagesByProduct.get(r.product_id));
+
+        return {
+          raw: r,
+          product: p,
+          variant: useVariant,
+          img
+        };
+      });
+
+      // render list
+      const list = $("itemsList");
+      list.innerHTML = "";
+
+      let totalQty = 0;
+      resolved.forEach(x => {
+        const qty = Number(x.raw.quantity) || 1;
+        totalQty += qty;
+
+        const pname = x.product ? x.product.name : "Unknown product";
+        const vlabel = x.variant ? x.variant.label : "No variant";
+        const pprice = x.variant ? formatMoney(x.variant.price) : "—";
+
+        const el = document.createElement("div");
+        el.className = "item";
+        el.innerHTML = `
+          <div class="item__img">
+            <img src="${x.img}" alt="${safeText(pname)}" loading="lazy">
+          </div>
+          <div>
+            <div class="item__name">${safeText(pname)}</div>
+            <div class="item__sub">${safeText(vlabel)} • ${pprice}</div>
+          </div>
+          <div class="item__qty">Qty: ${qty}</div>
+        `;
+        el.addEventListener("click", () => {
+          if (!x.product) return;
+          const url = x.product.slug
+            ? `product.html?slug=${encodeURIComponent(x.product.slug)}`
+            : `product.html?id=${encodeURIComponent(x.product.id)}`;
+          window.location.href = url;
+        });
+        list.appendChild(el);
+      });
+
+      $("summaryCount").textContent = String(resolved.length);
+      $("summaryQty").textContent = String(totalQty);
+
+      // enable buy if every item resolved to a variant
+      const missing = resolved.filter(x => !x.product || !x.variant);
+      if (missing.length) {
+        $("buyComboBtn").disabled = true;
+        $("buyHint").textContent = "Some combo items have no active variants. Please fix in admin.";
+        setSideNotice("Admin action needed: some products in this combo have no active variants.");
+      } else {
+        $("buyComboBtn").disabled = false;
+        $("buyHint").textContent = "Buy Combo will add all items into your cart.";
+      }
+
+      return { combo, items: resolved };
+    }
+
+    async function wireBuyButton(payload){
+      const btn = $("buyComboBtn");
+      if (!btn) return;
+
+      btn.addEventListener("click", async () => {
+        if (!payload?.items?.length) return;
+
+        btn.disabled = true;
+        btn.textContent = "Adding...";
+
+        try {
+          // add all items (cart keys: session_id, product_id, variant_id)
+          for (const x of payload.items) {
+            const qty = Number(x.raw.quantity) || 1;
+            await addToCart(x.product.id, x.variant.id, qty);
+          }
+          await refreshCartCount();
+          window.location.href = "cart.html";
+        } catch (e) {
+          alert("Could not add combo to cart: " + (e.message || e));
+          console.error(e);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Buy Combo";
+        }
+      });
+    }
+
+    function wireBack(){
+      $("backBtn").addEventListener("click", () => {
+        // go back if possible, else home
+        if (history.length > 1) history.back();
+        else window.location.href = "index.html";
+      });
+    }
+
+    async function init(){
+      initTheme();
+      wireBack();
+      await refreshCartCount();
+
+      const payload = await loadCombo();
+      await wireBuyButton(payload);
+
+      // support deep link buy=1 (auto add)
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("buy") === "1" && payload?.items?.length && !$("buyComboBtn").disabled) {
+        $("buyComboBtn").click();
+      }
+    }
+
+    init().catch(err => {
+      console.error(err);
+      alert("Error loading combo: " + (err.message || err));
+    });
+  </script>
+</body>
+</html>
